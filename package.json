@@ -8,7 +8,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/Proximify/uniweb-widget-builder.git"
+        "url": "git+https://github.com/uniwebcms/uniweb-module-builder.git"
     },
     "keywords": [
         "uniweb"

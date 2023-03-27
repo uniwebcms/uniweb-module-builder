@@ -2,20 +2,20 @@
 
 Standalone library for building federated modules for Uniweb CMS.
 
-`uniweb-remote-builder` is an NPM module that provides three functions to help build a collection of website widgets (federated module) and commit dist files to its own GitHub repository or another GitHub repository.
+`uniweb-module-builder` is an NPM module that provides three functions to help build a collection of website widgets (federated module) and commit dist files to its own GitHub repository or another GitHub repository.
 
 ## Installation
 
-You can install `uniweb-remote-builder` using npm:
+You can install `uniweb-module-builder` using npm:
 
 ```bash
-npm install uniweb-remote-builder
+npm install uniweb-module-builder
 ```
 
 Or using yarn:
 
 ```bash
-yarn add uniweb-remote-builder
+yarn add uniweb-module-builder
 ```
 
 ## Functions
@@ -49,7 +49,7 @@ Example
 
 ```javascript
 // webpack.config.js
-const { getConfigData } = require('uniweb-remote-builder');
+const { getConfigData } = require('uniweb-module-builder');
 
 module.exports = (_, argv) => {
     const { config } = getConfigData(argv, __dirname);
@@ -74,7 +74,7 @@ The `release` function takes `__dirname` as a parameter and analyzes the environ
 Example
 
 ```javascript
-const { release } = require('uniweb-remote-builder');
+const { release } = require('uniweb-module-builder');
 
 release(__dirname);
 ```
@@ -95,11 +95,11 @@ The `deploy` function takes `__dirname` as a parameter and analyzes the environm
 Example
 
 ```javascript
-const { deploy } = require('uniweb-remote-builder');
+const { deploy } = require('uniweb-module-builder');
 
 deploy(__dirname);
 ```
 
 ## License
 
-`uniweb-remote-builder` is licensed under the [MIT License](https://opensource.org/licenses/MIT).
+`uniweb-module-builder` is licensed under the [MIT License](https://opensource.org/licenses/MIT).
