@@ -1,5 +1,5 @@
 {
-    "name": "uniweb-module-builder",
+    "name": "@uniwebcms/module-builder",
     "version": "1.0.0",
     "description": "",
     "main": "src/index.js",
@@ -14,7 +14,7 @@
         "uniweb"
     ],
     "files": [
-        "src", "dist"
+        "src"
     ],
     "author": "",
     "license": "MIT",
