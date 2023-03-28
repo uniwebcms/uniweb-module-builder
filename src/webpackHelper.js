@@ -16,6 +16,7 @@ module.exports = function (argv, __dirname) {
 
     let mode = argv.mode;
     let module = process.env.TARGET_COLLECTION;
+    let federateModuleName = process.env.REMOTE_TYPE || 'WebsiteRemote';
 
     const isTunnel = !!env.tunnel;
     const isLocal = !!env.local;
@@ -172,7 +173,7 @@ module.exports = function (argv, __dirname) {
             if (isLocal) {
                 // update moduleRegistry.json
                 let registryContent = {
-                    WebsiteRemote: `${devPublicPath}remoteEntry.js`,
+                    [federateModuleName]: `${devPublicPath}remoteEntry.js`,
                 };
 
                 fs.outputJsonSync(
@@ -293,7 +294,7 @@ module.exports = function (argv, __dirname) {
         },
         plugins: [
             new ModuleFederationPlugin({
-                name: process.env.REMOTE_TYPE || 'WebsiteRemote',
+                name: federateModuleName,
                 filename: 'remoteEntry.js',
                 exposes,
                 shared: {
