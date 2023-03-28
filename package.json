@@ -13,6 +13,9 @@
     "keywords": [
         "uniweb"
     ],
+    "files": [
+        "src", "dist"
+    ],
     "author": "",
     "license": "MIT",
     "bugs": {

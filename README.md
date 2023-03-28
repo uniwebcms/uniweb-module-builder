@@ -2,20 +2,20 @@
 
 Standalone library for building federated modules for Uniweb CMS.
 
-`uniweb-module-builder` is an NPM module that provides three functions to help build a collection of website widgets (federated module) and commit dist files to its own GitHub repository or another GitHub repository.
+`@uniwebcms/module-builder` is an NPM module that provides three functions to help build a collection of website widgets (federated module) and commit dist files to its own GitHub repository or another GitHub repository.
 
 ## Installation
 
-You can install `uniweb-module-builder` using npm:
+You can install `@uniwebcms/module-builder` using npm:
 
 ```bash
-npm install uniweb-module-builder
+npm install @uniwebcms/module-builder
 ```
 
 Or using yarn:
 
 ```bash
-yarn add uniweb-module-builder
+yarn add @uniwebcms/module-builder
 ```
 
 ## Functions
@@ -49,7 +49,7 @@ Example
 
 ```javascript
 // webpack.config.js
-const { getConfigData } = require('uniweb-module-builder');
+const { getConfigData } = require('@uniwebcms/module-builder');
 
 module.exports = (_, argv) => {
     const { config } = getConfigData(argv, __dirname);
@@ -74,7 +74,7 @@ The `release` function takes `__dirname` as a parameter and analyzes the environ
 Example
 
 ```javascript
-const { release } = require('uniweb-module-builder');
+const { release } = require('@uniwebcms/module-builder');
 
 release(__dirname);
 ```
@@ -95,11 +95,11 @@ The `deploy` function takes `__dirname` as a parameter and analyzes the environm
 Example
 
 ```javascript
-const { deploy } = require('uniweb-module-builder');
+const { deploy } = require('@uniwebcms/module-builder');
 
 deploy(__dirname);
 ```
 
 ## License
 
-`uniweb-module-builder` is licensed under the [MIT License](https://opensource.org/licenses/MIT).
+`@uniwebcms/module-builder` is licensed under the [MIT License](https://opensource.org/licenses/MIT).
