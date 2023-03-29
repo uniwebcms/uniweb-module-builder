@@ -1,11 +1,12 @@
 # Site settings
 title: Uniweb Module Builder
 description: Standalone library for building federated modules for Uniweb CMS.
-url: https://uniwebcms.github.io
+url: https://uniwebcms.github.io/uniweb-module-builder/
 baseurl: "/"
 
 # Build settings
-theme: jekyll-theme-minimal
+theme: midnight
+
 plugins:
   - jekyll-seo-tag
   - jekyll-sitemap
