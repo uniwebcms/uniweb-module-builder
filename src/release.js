@@ -3,6 +3,14 @@ const fs = require('fs-extra');
 const execSync = require('child_process').execSync;
 
 const commit = (module, version) => {
+    const productionBranch = process.env.PRODUCTION_BRANCH;
+
+    if (!productionBranch) {
+        console.log('no production branch specified, abort commit');
+
+        return;
+    }
+
     let output;
 
     // sync repo
@@ -12,7 +20,7 @@ const commit = (module, version) => {
     console.log('Pull latest\n', output);
 
     // add and commit
-    const git = `git add ../dist/${module}/${version} && git add ../dist/${module}/version.json && git add ../dist/${module}/latest_version.txt && git commit -m 'new ${module} build' && git push -u origin master`;
+    const git = `git add ../dist/${module}/${version} && git add ../dist/${module}/version.json && git add ../dist/${module}/latest_version.txt && git commit -m 'new ${module} build' && git push -u origin ${productionBranch}`;
 
     output = execSync(git, {
         encoding: 'utf-8',
