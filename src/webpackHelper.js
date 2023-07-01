@@ -1,6 +1,7 @@
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const fs = require('fs-extra');
+const { URL } = require('url');
 const postpresetenv = require('postcss-preset-env');
 const tailwindcss = require('tailwindcss');
 const autoprefixer = require('autoprefixer');
@@ -8,11 +9,31 @@ const { ModuleFederationPlugin } = require('webpack').container;
 
 let uuid = uuidv4();
 
+function validUrl(url) {
+    if (!url) return '';
+
+    try {
+        url = new URL(url);
+    } catch (error) {
+        console.log(`Invalid URL '${url}'`);
+        console.log(error);
+        return false;
+    }
+
+    const href = `${url.protocol}//${url.hostname}${url.pathname}`;
+
+    return href.endsWith('/') ? href.slice(0, -1) : href;
+}
+
 module.exports = function (argv, __dirname) {
     const { env } = argv;
 
-    const { PUBLIC_URL, TUNNEL_URL, npm_lifecycle_event, CF_PAGES_URL, CF_PAGES_BRANCH } =
+    let { PUBLIC_URL, TUNNEL_URL, npm_lifecycle_event, CF_PAGES_URL, CF_PAGES_BRANCH } =
         process.env;
+
+    PUBLIC_URL = validUrl(PUBLIC_URL);
+    TUNNEL_URL = validUrl(TUNNEL_URL);
+    CF_PAGES_URL = validUrl(CF_PAGES_URL);
 
     let mode = argv.mode;
     let module = process.env.TARGET_COLLECTION;

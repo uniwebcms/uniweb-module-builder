@@ -2,12 +2,18 @@
 
 The recommended toolchain is the following:
 
-- [Node.js](https://nodejs.org/en) **stable version** (LTS)
-- [Yarn](https://yarnpkg.com/getting-started/install)
-- [Visual Studio Code](https://code.visualstudio.com/)
-- [Pagekite](https://pagekite.net/)
+- [Node.js](#node-js) stable version
+- [Yarn](#yarn) package manager
+- [Visual Studio Code](#visual-studio-code) editor
+- [Pagekite](#pagekite) for tunneling to localhost
 
-Begin by installing [Node.js LTS](https://nodejs.org/en). Then activate the currently experimental [Corepack](https://nodejs.org/dist/latest/docs/api/corepack.html) tool for managing versions of your package managers, such as Yarn.
+## Node JS
+
+Begin by installing [Node.js LTS](https://nodejs.org/en) (stable version). 
+
+## Yarn
+
+Activate the [Corepack](https://nodejs.org/dist/latest/docs/api/corepack.html) tool for managing versions of your package managers, such as [Yarn](https://yarnpkg.com/getting-started/install).
 
 ```bash
 # You might need to root level permissions (sudo -s) for this command
@@ -26,9 +32,13 @@ Run Yarn at the root folder of this repository to install all the dependencies.
 yarn
 ```
 
+## Visual Studio Code
+
 Now you can start working on your code. If you don't already have an IDE, go ahead and install [Visual Studio Code](https://code.visualstudio.com/).
 
-This repository comes with a web server ready to go for development purposes. The server will run on local host on port **3005** and will need to be accessible from the outside world via a public URL. We can achieve that with a middleware server that would send traffic to localhost via a tunnel. A simple solution is to get and install Pagekite.
+## Pagekite
+
+This repository comes with a web server ready to go for development purposes. The server will run on local host on port **3005** and will need to be accessible from the outside world via a public URL. We can achieve that with a middleware server that would send traffic to localhost via a tunnel. A simple solution is to get and install [Pagekite](https://pagekite.net/).
 
 You will be asked to create an account at Pagekite and to choose a name for your first "kite", which will be used to construct a permanent URL for your tunnel.
 
