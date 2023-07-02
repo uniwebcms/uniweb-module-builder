@@ -89,7 +89,7 @@ function getWebpackPlugins() {
     ];
 }
 
-module.exports = function (argv, __dirname) {
+module.exports = function (argv, rootDir) {
     const { env } = argv;
 
     let { PUBLIC_URL, TUNNEL_URL, npm_lifecycle_event, CF_PAGES_URL, CF_PAGES_BRANCH } =
@@ -105,6 +105,8 @@ module.exports = function (argv, __dirname) {
 
     const isTunnel = !!env.tunnel;
     const isLocal = !!env.local;
+
+    const buildDevDir = path.resolve(rootDir, '../build_dev');
 
     let prodPublicPath;
     let devPublicPath;
@@ -135,7 +137,7 @@ module.exports = function (argv, __dirname) {
         console.log('No module specified, try use first module');
 
         const modules = fs
-            .readdirSync(path.resolve(__dirname, '../src'), {
+            .readdirSync(path.resolve(rootDir, '../src'), {
                 withFileTypes: true,
             })
             .filter((dirent) => dirent.isDirectory() && dirent.name !== 'utils')
@@ -149,7 +151,9 @@ module.exports = function (argv, __dirname) {
     }
 
     if (isTunnel && !TUNNEL_URL) {
-        throw new Error('Missing tunnel URL');
+        TUNNEL_URL = fs.readFileSync(`${buildDevDir}/quick-tunnel.txt`, 'utf-8');
+
+        if (!TUNNEL_URL) throw new Error('Missing tunnel URL');
     }
 
     switch (npm_lifecycle_event) {
@@ -163,7 +167,7 @@ module.exports = function (argv, __dirname) {
                     ? `${CF_PAGES_URL}/${module}/${uuid}/`
                     : `${PUBLIC_URL}/${module}/${uuid}/`;
             }
-            dest = path.resolve(__dirname, '../dist', module);
+            dest = path.resolve(rootDir, '../dist', module);
             break;
         case 'build:dev':
             if (CF_PAGES_URL) {
@@ -173,30 +177,30 @@ module.exports = function (argv, __dirname) {
                     'build:dev should not be used under a non-Cloudflare environment, please use watch:local instead'
                 );
             }
-            dest = path.resolve(__dirname, '../dist', module);
+            dest = path.resolve(rootDir, '../dist', module);
             break;
         case 'watch:tunnel':
             devPublicPath = `${TUNNEL_URL}/${module}/${uuid}/`;
-            dest = path.resolve(__dirname, '../build_dev', module);
+            dest = path.resolve(buildDevDir, module);
             break;
         case 'watch:local':
             devPublicPath = `http://localhost:3005/${module}/${uuid}/`;
-            dest = path.resolve(__dirname, '../build_dev', module);
+            dest = path.resolve(rootDir, '../build_dev', module);
             break;
         case 'build:prod':
             prodPublicPath = CF_PAGES_URL
                 ? `${CF_PAGES_URL}/${module}/${uuid}/`
                 : `${PUBLIC_URL}/${module}/${uuid}/`;
-            dest = path.resolve(__dirname, '../dist', module);
+            dest = path.resolve(rootDir, '../dist', module);
             break;
         case 'build:prod-commit':
             prodPublicPath = `${PUBLIC_URL}/${module}/${uuid}/`;
-            dest = path.resolve(__dirname, '../dist', module);
+            dest = path.resolve(rootDir, '../dist', module);
             break;
         case 'build:prod-copy':
         case 'build:prod-copy-commit':
             prodPublicPath = `${PUBLIC_URL}/${module}/${uuid}/`;
-            dest = path.resolve(__dirname, '../build_dev', module);
+            dest = path.resolve(rootDir, '../build_dev', module);
             break;
     }
 
@@ -210,9 +214,7 @@ module.exports = function (argv, __dirname) {
     const exposes = {};
 
     // get module that need build and deploy
-    const moduleExists = fs
-        .readdirSync(path.resolve(__dirname, '../src'))
-        .find((m) => m === module);
+    const moduleExists = fs.readdirSync(path.resolve(rootDir, '../src')).find((m) => m === module);
 
     if (!moduleExists) {
         throw new Error('Module not exist!');
@@ -220,7 +222,7 @@ module.exports = function (argv, __dirname) {
 
     if (moduleExists) {
         // write dynamic entry.js
-        const entryFile = path.resolve(__dirname, `entry.js`);
+        const entryFile = path.resolve(rootDir, `entry.js`);
         const entryContent = `import("../src/${module}");\n`;
 
         fs.writeFileSync(entryFile, entryContent.trim(), { flag: 'w' });
@@ -229,7 +231,7 @@ module.exports = function (argv, __dirname) {
         exposes[`./widgets`] = `../src/${module}`;
 
         // add tailwindcss loader if needed
-        const tailwindPath = path.resolve(__dirname, '..', 'src', module, 'tailwind.config.js');
+        const tailwindPath = path.resolve(rootDir, '..', 'src', module, 'tailwind.config.js');
 
         if (fs.existsSync(tailwindPath)) {
             tailwindCssLoader = {
@@ -262,7 +264,7 @@ module.exports = function (argv, __dirname) {
                 };
 
                 fs.outputJsonSync(
-                    path.resolve(__dirname, '../build_dev', 'remoteRegistry.json'),
+                    path.resolve(rootDir, '../build_dev', 'remoteRegistry.json'),
                     registryContent
                 );
             } else {
@@ -284,7 +286,7 @@ module.exports = function (argv, __dirname) {
 
     const config = {
         mode,
-        entry: path.resolve(__dirname, 'entry.js'),
+        entry: path.resolve(rootDir, 'entry.js'),
         resolve: {
             extensions: ['.jsx', '.js', '.json'],
         },
