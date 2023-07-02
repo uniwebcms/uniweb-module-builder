@@ -29,7 +29,7 @@ function validUrl(url) {
     return href.endsWith('/') ? href.slice(0, -1) : href;
 }
 
-function getWebpackPlugins(federateModuleName, exposes, tunnelUrl) {
+function getWebpackPlugins(federateModuleName, exposes, devUrl) {
     return [
         new ModuleFederationPlugin({
             name: federateModuleName,
@@ -70,22 +70,21 @@ function getWebpackPlugins(federateModuleName, exposes, tunnelUrl) {
         //     minRatio: 0.8,
         //     deleteOriginalAssets: false,
         // }),
-        // function () {
-        //     this.hooks.done.tap('BuildCompletePlugin', (stats) => {
-        //         if (stats.compilation.errors.length === 0) {
-        //             // console.log('Webpack build completed successfully!');
-        //             const separator = '-'.repeat(40); // Dashed line separator
-        //             const message =
-        //                 chalk.green.bold('Tunnel: ') + chalk.white(`${tunnelUrl}/${module}`);
+        function () {
+            this.hooks.done.tap('BuildCompletePlugin', (stats) => {
+                if (stats.compilation.errors.length === 0) {
+                    // console.log('Webpack build completed successfully!');
+                    const separator = '-'.repeat(40); // Dashed line separator
+                    const message = chalk.green.bold('Dev URL: ') + chalk.white(devUrl);
 
-        //             console.log('\n' + separator);
-        //             console.log(message);
-        //             console.log(separator + '\n');
-        //         } else {
-        //             console.log('Webpack build encountered errors.');
-        //         }
-        //     });
-        // },
+                    console.log('\n' + separator);
+                    console.log(message);
+                    console.log(separator + '\n');
+                } else {
+                    console.log('Webpack build encountered errors.');
+                }
+            });
+        },
     ];
 }
 
@@ -379,7 +378,7 @@ module.exports = function (argv, rootDir) {
                 },
             ],
         },
-        plugins: getWebpackPlugins(federateModuleName, exposes, TUNNEL_URL),
+        plugins: getWebpackPlugins(federateModuleName, exposes, `${TUNNEL_URL}/${module}`),
         watchOptions: {
             ignored: ['**/node_modules'],
         },
