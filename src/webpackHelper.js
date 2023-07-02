@@ -2,6 +2,7 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const fs = require('fs-extra');
 const { URL } = require('url');
+const tunnel = require('./tunnel');
 const postpresetenv = require('postcss-preset-env');
 const tailwindcss = require('tailwindcss');
 const autoprefixer = require('autoprefixer');
@@ -25,14 +26,13 @@ function validUrl(url) {
     return href.endsWith('/') ? href.slice(0, -1) : href;
 }
 
-module.exports = function (argv, __dirname) {
+module.exports = async function (argv, __dirname) {
     const { env } = argv;
 
     let { PUBLIC_URL, TUNNEL_URL, npm_lifecycle_event, CF_PAGES_URL, CF_PAGES_BRANCH } =
         process.env;
 
     PUBLIC_URL = validUrl(PUBLIC_URL);
-    TUNNEL_URL = validUrl(TUNNEL_URL);
     CF_PAGES_URL = validUrl(CF_PAGES_URL);
 
     let mode = argv.mode;
@@ -84,8 +84,13 @@ module.exports = function (argv, __dirname) {
         throw new Error('No public url received under production mode');
     }
 
-    if (isTunnel && !TUNNEL_URL) {
-        throw new Error('No public url received under tunnel mode');
+    if (isTunnel) {
+        // Start a tunnel automatically
+        if (TUNNEL_URL) TUNNEL_URL = validUrl(TUNNEL_URL);
+        else TUNNEL_URL = await tunnel();
+
+        if (TUNNEL_URL) console.log(`The tunnel is: ${TUNNEL_URL}`);
+        else throw new Error('Missing tunnel URL');
     }
 
     switch (npm_lifecycle_event) {
