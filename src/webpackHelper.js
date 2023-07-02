@@ -344,14 +344,20 @@ module.exports = async function (argv, __dirname) {
                     },
                 },
             }),
-            // Custom plugin to display a console message when the build is done
-            new webpack.DonePlugin((stats) => {
+        ],
+        stats: {
+            // Custom function to execute when the build is done
+            async done(stats) {
                 console.log('Build completed successfully!');
-                // You can also access the stats object to get build information if needed
+                // Show the stats object to get build information
                 console.log(stats);
                 console.log(`${TUNNEL_URL}/${module}`);
-            }),
-        ],
+            },
+        },
+        // Hook into the compilation to access the stats object
+        // infrastructureLogging: {
+        //     level: 'warn', // or 'none' to disable logging
+        // },
         watchOptions: {
             ignored: ['**/node_modules'],
         },
