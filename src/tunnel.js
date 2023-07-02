@@ -18,9 +18,6 @@ module.exports = function createTunnel(port = 3005) {
 
         process.stderr.on('data', (data) => {
             const output = data.toString();
-
-            console.log(output);
-
             const regex = /https:\/\/.*?\.trycloudflare\.com/g;
             const match = regex.exec(output);
 
@@ -50,18 +47,18 @@ module.exports = function createTunnel(port = 3005) {
         //     }
         // });
 
-        // Listen for SIGINT event in the parent process
-        process.on('SIGINT', () => {
-            console.log('Process received SIGINT signal');
+        // // Listen for SIGINT event in the parent process
+        // process.on('SIGINT', () => {
+        //     console.log('Process received SIGINT signal');
 
-            // Kill the child process
-            // childProcess.kill();
+        //     // Kill the child process
+        //     // childProcess.kill();
 
-            // Perform any necessary cleanup or additional actions
-            // ...
+        //     // Perform any necessary cleanup or additional actions
+        //     // ...
 
-            // Exit the parent process
-            process.exit();
-        });
+        //     // Exit the parent process
+        //     process.exit();
+        // });
     });
 };
