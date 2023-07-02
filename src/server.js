@@ -4,18 +4,17 @@ const fs = require('fs');
 const createTunnel = require('./tunnel');
 const chalk = require('chalk');
 
-module.exports = function startServer(dirname) {
+module.exports = function startServer(dirname, port) {
     const dest = path.resolve(dirname, '../build_dev');
-    const port = process.env.DEV_SERVER_PORT;
 
     // Create the target folder if it doesn't exist
     if (!fs.existsSync(dest)) fs.mkdirSync(dest);
 
     const cmd = `yarn run http-server ${dest} -p=${port} --cors`;
 
-    const process = exec(cmd);
+    const serverProcess = exec(cmd);
 
-    process.stdout.on('data', function (data) {
+    serverProcess.stdout.on('data', function (data) {
         console.log(data);
     });
 
