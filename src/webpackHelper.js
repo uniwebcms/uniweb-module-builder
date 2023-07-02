@@ -8,6 +8,7 @@ const tailwindcss = require('tailwindcss');
 const autoprefixer = require('autoprefixer');
 const webpack = require('webpack');
 const chalk = require('chalk');
+const CompressionPlugin = require('compression-webpack-plugin');
 
 const { ModuleFederationPlugin } = webpack.container;
 
@@ -343,17 +344,25 @@ module.exports = async function (argv, __dirname) {
                     },
                 },
             }),
+            // Enable Brotli compression
+            new CompressionPlugin({
+                filename: '[path].br[query]',
+                algorithm: 'brotliCompress',
+                test: /\.(js|css|html|svg)$/,
+                threshold: 10240,
+                minRatio: 0.8,
+                deleteOriginalAssets: false,
+            }),
             function () {
                 this.hooks.done.tap('BuildCompletePlugin', (stats) => {
                     if (stats.compilation.errors.length === 0) {
                         // console.log('Webpack build completed successfully!');
                         const separator = '-'.repeat(40); // Dashed line separator
-                        const indentation = '  '; // Two-space indentation
                         const message =
-                            chalk.white.bold('Tunnel: ') + chalk.green(`${TUNNEL_URL}/${module}`);
+                            chalk.green.bold('Tunnel: ') + chalk.white(`${TUNNEL_URL}/${module}`);
 
                         console.log('\n' + separator);
-                        console.log(indentation + message);
+                        console.log(message);
                         console.log(separator + '\n');
                     } else {
                         console.log('Webpack build encountered errors.');
