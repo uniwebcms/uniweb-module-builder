@@ -20,6 +20,9 @@ module.exports = function startServer(dirname, port) {
 
     createTunnel()
         .then((tunnelUrl) => {
+            const filePath = dest + '/quick-tunnel.txt';
+            fs.writeFileSync(filePath, tunnelUrl);
+
             const separator = '-'.repeat(40); // Dashed line separator
             const message = chalk.green.bold('Tunnel: ') + chalk.white(tunnelUrl);
 
