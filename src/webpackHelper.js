@@ -342,12 +342,16 @@ module.exports = async function (argv, __dirname) {
                     },
                 },
             }),
-            new webpack.CompilerHookPlugin({
-                afterEmit(compilation) {
-                    console.log('Webpack build completed successfully!');
-                    console.log(`${TUNNEL_URL}/${module}`);
-                },
-            }),
+            function () {
+                this.hooks.done.tap('BuildCompletePlugin', (stats) => {
+                    if (stats.compilation.errors.length === 0) {
+                        console.log('Webpack build completed successfully!');
+                    } else {
+                        console.log('Webpack build encountered errors.');
+                    }
+                    // Additional custom logic if needed
+                });
+            },
         ],
         watchOptions: {
             ignored: ['**/node_modules'],
