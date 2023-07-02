@@ -346,10 +346,15 @@ module.exports = async function (argv, __dirname) {
             function () {
                 this.hooks.done.tap('BuildCompletePlugin', (stats) => {
                     if (stats.compilation.errors.length === 0) {
-                        console.log('Webpack build completed successfully!');
-                        console.log(
-                            chalk.green.bold('Tunnel: ') + chalk.bgYellow(`${TUNNEL_URL}/${module}`)
-                        );
+                        // console.log('Webpack build completed successfully!');
+                        const separator = '-'.repeat(40); // Dashed line separator
+                        const indentation = '  '; // Two-space indentation
+                        const message =
+                            chalk.white.bold('Tunnel: ') + chalk.green(`${TUNNEL_URL}/${module}`);
+
+                        console.log('\n' + separator);
+                        console.log(indentation + message);
+                        console.log(separator + '\n');
                     } else {
                         console.log('Webpack build encountered errors.');
                     }
