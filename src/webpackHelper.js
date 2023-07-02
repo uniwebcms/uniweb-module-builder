@@ -351,6 +351,11 @@ module.exports = async function (argv, __dirname) {
                     }
                     // Additional custom logic if needed
                 });
+
+                this.hooks.watchClose.tap('WatchClosePlugin', () => {
+                    console.log('Watch mode has been closed');
+                    // Additional custom logic if needed
+                });
             },
         ],
         watchOptions: {
