@@ -8,8 +8,6 @@ const tailwindcss = require('tailwindcss');
 const autoprefixer = require('autoprefixer');
 const webpack = require('webpack');
 
-console.log(webpack);
-
 const { ModuleFederationPlugin } = webpack.container;
 
 let uuid = uuidv4();
@@ -344,27 +342,15 @@ module.exports = async function (argv, __dirname) {
                     },
                 },
             }),
+            new webpack.CompilerHookPlugin({
+                afterEmit(compilation) {
+                    console.log('Webpack build completed successfully!');
+                    console.log(`${TUNNEL_URL}/${module}`);
+                },
+            }),
         ],
-        // stats: {
-        //     // Custom function to execute when the build is done
-        //     async done(stats) {
-        //         console.log('Build completed successfully!');
-        //         // Show the stats object to get build information
-        //         console.log(stats);
-        //         console.log(`${TUNNEL_URL}/${module}`);
-        //     },
-        // },
-        // Hook into the compilation to access the stats object
-        // infrastructureLogging: {
-        //     level: 'warn', // or 'none' to disable logging
-        // },
         watchOptions: {
             ignored: ['**/node_modules'],
-        },
-        watchClose(callback) {
-            console.log('Watch mode has been closed');
-            console.log(`${TUNNEL_URL}/${module}`);
-            callback();
         },
     };
 
