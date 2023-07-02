@@ -6,7 +6,11 @@ const createTunnel = require('./tunnel');
 const postpresetenv = require('postcss-preset-env');
 const tailwindcss = require('tailwindcss');
 const autoprefixer = require('autoprefixer');
-const { ModuleFederationPlugin } = require('webpack').container;
+const webpack = require('webpack');
+
+console.log(webpack);
+
+const { ModuleFederationPlugin } = webpack.container;
 
 let uuid = uuidv4();
 
