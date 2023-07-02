@@ -29,7 +29,7 @@ function validUrl(url) {
     return href.endsWith('/') ? href.slice(0, -1) : href;
 }
 
-function getWebpackPlugins() {
+function getWebpackPlugins(federateModuleName) {
     return [
         new ModuleFederationPlugin({
             name: federateModuleName,
@@ -379,7 +379,7 @@ module.exports = function (argv, rootDir) {
                 },
             ],
         },
-        plugins: getWebpackPlugins(),
+        plugins: getWebpackPlugins(federateModuleName),
         watchOptions: {
             ignored: ['**/node_modules'],
         },
