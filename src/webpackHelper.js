@@ -54,7 +54,7 @@ function getWebpackPlugins(federateModuleName, exposes, tunnelUrl) {
         }),
         // Enable gzip compression
         new CompressionPlugin({
-            filename: '[path][base].br',
+            filename: '[path][base].gzip',
             algorithm: 'gzip',
             test: /\.(js|css|html|svg)$/,
             threshold: 10240,
