@@ -7,6 +7,7 @@ const postpresetenv = require('postcss-preset-env');
 const tailwindcss = require('tailwindcss');
 const autoprefixer = require('autoprefixer');
 const webpack = require('webpack');
+const chalk = require('chalk');
 
 const { ModuleFederationPlugin } = webpack.container;
 
@@ -346,15 +347,12 @@ module.exports = async function (argv, __dirname) {
                 this.hooks.done.tap('BuildCompletePlugin', (stats) => {
                     if (stats.compilation.errors.length === 0) {
                         console.log('Webpack build completed successfully!');
+                        console.log(
+                            chalk.green.bold('Tunnel: ') + chalk.bgYellow(`${TUNNEL_URL}/${module}`)
+                        );
                     } else {
                         console.log('Webpack build encountered errors.');
                     }
-                    // Additional custom logic if needed
-                });
-
-                this.hooks.watchClose.tap('WatchClosePlugin', () => {
-                    console.log('Watch mode has been closed');
-                    // Additional custom logic if needed
                 });
             },
         ],
