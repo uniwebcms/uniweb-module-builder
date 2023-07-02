@@ -1,19 +1,43 @@
 const path = require('path');
 const exec = require('child_process').exec;
 const fs = require('fs');
-const createTunnel = require('./tunnel');
 const chalk = require('chalk');
+const yargs = require('yargs');
+const createTunnel = require('./tunnel');
 
-module.exports = function startServer(dirname, port, withTunnel = false) {
+/**
+ * Get the command-line options of the process.
+ * @returns {Object} A map of CLI options.
+ */
+function getOptions() {
+    return yargs
+        .option('tunnel', {
+            alias: 't',
+            describe: 'Start a tunnel to localhost?',
+            type: 'boolean',
+            demandOption: false,
+        })
+        .option('cache', {
+            default: 30,
+            describe: 'Cache-control max-age header in seconds',
+            type: 'number',
+            demandOption: false,
+        }).argv;
+}
+
+module.exports = function startServer(dirname, port) {
     const dest = path.resolve(dirname, '../build_dev');
     const tunnelFilename = dest + '/quick-tunnel.txt';
+    const options = getOptions();
 
     // Create the target folder if it doesn't exist
     if (!fs.existsSync(dest)) fs.mkdirSync(dest);
 
-    // -c60 sets cache to 60 seconds
+    // -c60 sets cache to 60 seconds. -c-1 disables caching
+    const cache = options.cache ? `-c${options.cache}` : '-c-1';
+
     // see https://www.npmjs.com/package/http-server
-    const cmd = `yarn run http-server ${dest} -p=${port} -c60 --cors --gzip`;
+    const cmd = `yarn run http-server ${dest} -p=${port} --cors --gzip ${cache}`;
 
     const serverProcess = exec(cmd);
 
@@ -21,7 +45,7 @@ module.exports = function startServer(dirname, port, withTunnel = false) {
         console.log(data);
     });
 
-    if (withTunnel) {
+    if (options.tunnel) {
         createTunnel()
             .then((tunnelUrl) => {
                 fs.writeFileSync(tunnelFilename, tunnelUrl);
