@@ -2,7 +2,6 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const fs = require('fs-extra');
 const { URL } = require('url');
-const createTunnel = require('./tunnel');
 const postpresetenv = require('postcss-preset-env');
 const tailwindcss = require('tailwindcss');
 const autoprefixer = require('autoprefixer');
@@ -30,7 +29,67 @@ function validUrl(url) {
     return href.endsWith('/') ? href.slice(0, -1) : href;
 }
 
-module.exports = async function (argv, __dirname) {
+function getWebpackPlugins() {
+    return [
+        new ModuleFederationPlugin({
+            name: federateModuleName,
+            filename: 'remoteEntry.js',
+            exposes,
+            shared: {
+                react: { singleton: true, requiredVersion: '^18.2.0' },
+                'react-dom': {
+                    singleton: true,
+                    requiredVersion: '^18.2.0',
+                },
+                'react-router-dom': {
+                    singleton: true,
+                    requiredVersion: '^6.4.2',
+                },
+                twind: { singleton: true, requiredVersion: '^0.16.17' },
+                '@twind/react': {
+                    singleton: true,
+                    requiredVersion: '^0.0.4',
+                },
+            },
+        }),
+        // Enable gzip compression
+        new CompressionPlugin({
+            filename: '[path][base].br',
+            algorithm: 'gzip',
+            test: /\.(js|css|html|svg)$/,
+            threshold: 10240,
+            minRatio: 0.8,
+            deleteOriginalAssets: false,
+        }),
+        // // Enable Brotli compression
+        // new CompressionPlugin({
+        //     filename: '[path][base].br',
+        //     algorithm: 'brotliCompress',
+        //     test: /\.(js|css|html|svg)$/,
+        //     threshold: 10240,
+        //     minRatio: 0.8,
+        //     deleteOriginalAssets: false,
+        // }),
+        function () {
+            this.hooks.done.tap('BuildCompletePlugin', (stats) => {
+                if (stats.compilation.errors.length === 0) {
+                    // console.log('Webpack build completed successfully!');
+                    const separator = '-'.repeat(40); // Dashed line separator
+                    const message =
+                        chalk.green.bold('Tunnel: ') + chalk.white(`${TUNNEL_URL}/${module}`);
+
+                    console.log('\n' + separator);
+                    console.log(message);
+                    console.log(separator + '\n');
+                } else {
+                    console.log('Webpack build encountered errors.');
+                }
+            });
+        },
+    ];
+}
+
+module.exports = function (argv, __dirname) {
     const { env } = argv;
 
     let { PUBLIC_URL, TUNNEL_URL, npm_lifecycle_event, CF_PAGES_URL, CF_PAGES_BRANCH } =
@@ -38,6 +97,7 @@ module.exports = async function (argv, __dirname) {
 
     PUBLIC_URL = validUrl(PUBLIC_URL);
     CF_PAGES_URL = validUrl(CF_PAGES_URL);
+    TUNNEL_URL = validUrl(TUNNEL_URL);
 
     let mode = argv.mode;
     let module = process.env.TARGET_COLLECTION;
@@ -88,13 +148,8 @@ module.exports = async function (argv, __dirname) {
         throw new Error('No public url received under production mode');
     }
 
-    if (isTunnel) {
-        // Start a tunnel automatically
-        if (TUNNEL_URL) TUNNEL_URL = validUrl(TUNNEL_URL);
-        else TUNNEL_URL = await createTunnel();
-
-        if (TUNNEL_URL) console.log(`The tunnel is: ${TUNNEL_URL}`);
-        else throw new Error('Missing tunnel URL');
+    if (isTunnel && !TUNNEL_URL) {
+        throw new Error('Missing tunnel URL');
     }
 
     switch (npm_lifecycle_event) {
@@ -322,56 +377,7 @@ module.exports = async function (argv, __dirname) {
                 },
             ],
         },
-        plugins: [
-            new ModuleFederationPlugin({
-                name: federateModuleName,
-                filename: 'remoteEntry.js',
-                exposes,
-                shared: {
-                    react: { singleton: true, requiredVersion: '^18.2.0' },
-                    'react-dom': {
-                        singleton: true,
-                        requiredVersion: '^18.2.0',
-                    },
-                    'react-router-dom': {
-                        singleton: true,
-                        requiredVersion: '^6.4.2',
-                    },
-                    twind: { singleton: true, requiredVersion: '^0.16.17' },
-                    '@twind/react': {
-                        singleton: true,
-                        requiredVersion: '^0.0.4',
-                    },
-                },
-            }),
-            // Enable Brotli compression
-            new CompressionPlugin({
-                // filename: '[path].br[query]',
-                // filename: 'main.[contenthash].js.br',
-                filename: '[path][base].br',
-                algorithm: 'brotliCompress',
-                test: /\.(js|css|html|svg)$/,
-                threshold: 10240,
-                minRatio: 0.8,
-                deleteOriginalAssets: false,
-            }),
-            function () {
-                this.hooks.done.tap('BuildCompletePlugin', (stats) => {
-                    if (stats.compilation.errors.length === 0) {
-                        // console.log('Webpack build completed successfully!');
-                        const separator = '-'.repeat(40); // Dashed line separator
-                        const message =
-                            chalk.green.bold('Tunnel: ') + chalk.white(`${TUNNEL_URL}/${module}`);
-
-                        console.log('\n' + separator);
-                        console.log(message);
-                        console.log(separator + '\n');
-                    } else {
-                        console.log('Webpack build encountered errors.');
-                    }
-                });
-            },
-        ],
+        plugins: getWebpackPlugins(),
         watchOptions: {
             ignored: ['**/node_modules'],
         },

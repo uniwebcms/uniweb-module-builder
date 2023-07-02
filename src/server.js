@@ -10,7 +10,7 @@ module.exports = function startServer(dirname, port) {
     // Create the target folder if it doesn't exist
     if (!fs.existsSync(dest)) fs.mkdirSync(dest);
 
-    const cmd = `yarn run http-server ${dest} -p=${port} --cors`;
+    const cmd = `yarn run http-server ${dest} -p=${port} --cors --gzip`;
 
     const serverProcess = exec(cmd);
 
