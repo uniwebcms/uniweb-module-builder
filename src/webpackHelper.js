@@ -382,6 +382,7 @@ module.exports = function (argv, rootDir) {
         watchOptions: {
             ignored: ['**/node_modules'],
         },
+        stats: 'minimal', // https://webpack.js.org/configuration/stats/
     };
 
     return {
