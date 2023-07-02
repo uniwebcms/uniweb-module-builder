@@ -1,33 +1,32 @@
 # Serving and fetching a module via a tunnel
 
-Assuming that you installed the [development toolchain](dev_toolchain.md), your local `.env.dev` file should have the URL of the tunnel that will connect a remove Uniweb instance with a local web server distributing your module files under the `dist` folder.
+Assuming that you installed the [development toolchain](dev_toolchain.md), you should be ready to run a local web server and a public tunnel to it.
 
-You will need 3 terminal windows: one to run the web server, another to watch for code changes and rebuild the distribution bundle, and an extra one to run the tunnel.
+You will need 2 terminal windows: one to run the web server and another to watch for code changes and rebuild the distribution bundle.
 
 In one terminal, run
 
 ```bash
-yarn serve
+yarn serve --tunnel
 ```
 
-In another terminal, run
+You can check that the server is working by visiting `https://127.0.0.1:3005`. In addition, the `build_dev` folder has a `quick-tunnel.txt` file with the URL of the active tunnel. Visit that public URL and confirm that it serves the files in `build_dev`.
+
+> The default tunnel uses Cloudflare quick tunnel which provides a different URL every time the web server is started. It is also possible to configure a permanent tunnel URL in the environment variables. In that case, your local `.env.dev` file should set the URL of the `TUNNEL_URL` variable to the URL of a permanent tunnel.
+
+Next, **in another terminal**, run
 
 ```bash
-yarn watch:tunnel
+yarn watch
 ```
 
-You can check that the server is working by visiting `https://127.0.0.1:3005`.
-
-Now it's time to fly the kite and open a tunnel from your local machine into the world:
+The output should show the filds that were built and the URL of the collection. For example,
 
 ```bash
-# login and start the tunnel
-$ python3 pagekite.py 3005 [kite_name].pagekite.me 
+Dev URL: https://[tunnel-sub-domain].trycloudflare.com/SimpleCollection
 ```
 
-You can confirm that all is working by visiting the URL `https://[kite_name].pagekite.me` with a web browser. You should see a page similar to this one:
-
-![img.png](assets/pagekite_index.jpg)
+You will have copy this URL and past in in the "dev mode" options of your website so as to connect the website to your development distribution as discussed below.
 
 ## Connecting the module to a website
 
