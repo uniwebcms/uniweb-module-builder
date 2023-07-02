@@ -347,7 +347,8 @@ module.exports = async function (argv, __dirname) {
             // Enable Brotli compression
             new CompressionPlugin({
                 // filename: '[path].br[query]',
-                filename: 'main.[contenthash].js.br',
+                // filename: 'main.[contenthash].js.br',
+                filename: '[path][base].br',
                 algorithm: 'brotliCompress',
                 test: /\.(js|css|html|svg)$/,
                 threshold: 10240,
