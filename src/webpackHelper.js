@@ -2,7 +2,7 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const fs = require('fs-extra');
 const { URL } = require('url');
-const tunnel = require('./tunnel');
+const createTunnel = require('./tunnel');
 const postpresetenv = require('postcss-preset-env');
 const tailwindcss = require('tailwindcss');
 const autoprefixer = require('autoprefixer');
@@ -87,7 +87,7 @@ module.exports = async function (argv, __dirname) {
     if (isTunnel) {
         // Start a tunnel automatically
         if (TUNNEL_URL) TUNNEL_URL = validUrl(TUNNEL_URL);
-        else TUNNEL_URL = await tunnel();
+        else TUNNEL_URL = await createTunnel();
 
         if (TUNNEL_URL) console.log(`The tunnel is: ${TUNNEL_URL}`);
         else throw new Error('Missing tunnel URL');
