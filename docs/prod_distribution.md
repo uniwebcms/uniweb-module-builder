@@ -29,7 +29,7 @@ Configure the Cloudflare Pages project as shown below.
 
 ![img.png](https://github.com/uniwebcms/uniweb-module-builder/blob/main/docs/assets/cloudflare/simpleBuildSetting.png)
 
-The **target collection** of the build is defined in the environment variable `TARGET_COLLECTION` located in the `.env` file of this repository. The default value is `MainCollection`. You can edit the `.env` file and set a new value for it, or you can manage its value directly in your Cloudflare project, which has higher precedence that the one in `.env`.
+The **target collection** of the build is defined in the environment variable `TARGET_MODULE` located in the `.env` file of this repository. The default value is `MainCollection`. You can edit the `.env` file and set a new value for it, or you can manage its value directly in your Cloudflare project, which has higher precedence that the one in `.env`.
 
 Every time you commit to your main branch, a production build will be executed automatically.
 
@@ -112,7 +112,7 @@ Make sure that the [Yarn package manager](https://yarnpkg.com/) is installed and
 yarn
 ```
 
-Before building, make sure that the `TARGET_COLLECTION` environment variable is set with the name of the collection that you want to build. You can write the setting in `.env` if you want to commit the change, or in `.env.local` if you want to be ignored in the commit (ideal when working with other team members working on different collections).
+Before building, make sure that the `TARGET_MODULE` environment variable is set with the name of the collection that you want to build. You can write the setting in `.env` if you want to commit the change, or in `.env.local` if you want to be ignored in the commit (ideal when working with other team members working on different collections).
 
 You can build and commit a new distribution bundle by running the `build:prod-commit` action.
 
@@ -120,7 +120,7 @@ You can build and commit a new distribution bundle by running the `build:prod-co
 yarn build:prod-commit
 ```
 
-> You can also set the `TARGET_COLLECTION` in the build command using this syntax: `TARGET_COLLECTION=[some_name] yarn build:prod-commit`
+> You can also set the `TARGET_MODULE` in the build command using this syntax: `TARGET_MODULE=[some_name] yarn build:prod-commit`
 
 ### Developing with a localhost tunnel
 

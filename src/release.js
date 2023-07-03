@@ -29,7 +29,7 @@ const commit = (module, version) => {
 };
 
 module.exports = function release(__dirname) {
-    const module = process.env.TARGET_COLLECTION;
+    const module = process.env.TARGET_MODULE;
 
     if (!module || !fs.existsSync(path.resolve(__dirname, '../src', module))) {
         console.log('no module specified or unable to find module, abort');

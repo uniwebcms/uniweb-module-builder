@@ -99,7 +99,7 @@ module.exports = function (argv, rootDir) {
     TUNNEL_URL = validUrl(TUNNEL_URL);
 
     let mode = argv.mode;
-    let module = process.env.TARGET_COLLECTION;
+    let module = process.env.TARGET_MODULE;
     let federateModuleName = process.env.REMOTE_TYPE || 'WebsiteRemote';
 
     const isTunnel = !!env.tunnel;

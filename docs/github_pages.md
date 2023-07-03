@@ -13,7 +13,7 @@
 ###### _Integrate with github pages_
 
 ```bash
-TARGET_COLLECTION=[name] yarn build:prod-copy-commit
+TARGET_MODULE=[name] yarn build:prod-copy-commit
 ```
 
 This script creates a bundle of Javascript code. The destination directory is given by the property `OUTPUT_COPY_DIR` set in the `.env.dev`, which is often a **distribution repo**.

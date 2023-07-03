@@ -30,7 +30,7 @@ Cloudflare can build source code using the `build` script. This script can be co
 > Every new commits will trigger Cloudflare to automatically build and deploy your changes using this build command
 > This is useful when developer try to release new version without a node environment
 
-The automatic build of Cloudflare can only build one collection per repository. The name of the collection is needed at build time and it's taken from the environment variable `TARGET_COLLECTION`. The variable can be set in different ways. One method is to set it in Cloudflare's **Environment variables** settings.
+The automatic build of Cloudflare can only build one collection per repository. The name of the collection is needed at build time and it's taken from the environment variable `TARGET_MODULE`. The variable can be set in different ways. One method is to set it in Cloudflare's **Environment variables** settings.
 
 ![img.png](assets/cloudflare/setupEnv.png)
 
@@ -45,7 +45,7 @@ In Cloudflare:
 
 #### Building for Cloudflare
 
-We can now distribute multiple collection per repository. Still, when building a collection, we must build one at a time. The name of the collection is taken from the environment variable `TARGET_COLLECTION`. One option is to set `TARGET_COLLECTION` in your `.env.dev` file to the name of target collection. Then, run the script below whenever you want to build and commit that collection.
+We can now distribute multiple collection per repository. Still, when building a collection, we must build one at a time. The name of the collection is taken from the environment variable `TARGET_MODULE`. One option is to set `TARGET_MODULE` in your `.env.dev` file to the name of target collection. Then, run the script below whenever you want to build and commit that collection.
 
 ```bash
 # Build and commit
@@ -56,7 +56,7 @@ Or, to build without committing, use `yarn build:prod` instead.
 
 This script creates a bundle of Javascript code. The destination directory is the local dist folder. After the build it's complete, tt commits and push new files to git. Cloudflare will catch the commit and deploy new content.
 
-> The name of the target collection can also be passed by adding it before the script call: `TARGET_COLLECTION=[name] yarn build:prod`. That will override the name set in any of the `.env` files.
+> The name of the target collection can also be passed by adding it before the script call: `TARGET_MODULE=[name] yarn build:prod`. That will override the name set in any of the `.env` files.
 
 ## Production and Preview deployments
 
