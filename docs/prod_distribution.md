@@ -94,7 +94,7 @@ After editing the files in the repository, remember to commit the changes so tha
 
 Letting Cloudflare build your collection is a good option for repositories that only have one collection in them as, for now, you cannot connect one GitHub repository to multiple Cloudflare Pages projects. For repositories with multiple collections, you have to build them locally, and use Cloudflare for distribution only. Building locally is also faster, but requires you to have Yarn installed.
 
-Whenever possible, we recommend local builds for production and [public tunneling to localhost](#developing-with-a-localhost-tunnel) for development. For the scenario where you want the flexibility of updating website components without a computer, e.g. with your phone, using online tools for editing and building is the ideal choice. Online building is also good to get your first project started with minimal effort.
+Whenever possible, we recommend local builds for production and [public tunneling to localhost](dev_with_tunnel.md) for development. For the scenario where you want the flexibility of updating website components without a computer, e.g. with your phone, using online tools for editing and building is the ideal choice. Online building is also good to get your first project started with minimal effort.
 
 The most common setup is having a `master` branch and a `develop` branch and configuring Cloudflare to distribute the `dist` folder in the `master` branch. With that branch structure, the frequent commits are done on the `develop` branch, which is only merged into the `master` branch to make a new version publicly available.
 
@@ -128,7 +128,7 @@ For development environments, we recommend working with a public tunnel to your 
 
 > The latest version build of your code is available to the site via the public tunnel that you opened.
 
-Follow the [instructions on working with a public tunnel](https://github.com/uniwebcms/uniweb-module-builder/blob/main/docs/localhost_tunnel.md) to set up a tunnel and develop locally with it.
+Follow the [instructions on working with a public tunnel](dev_with_tunnel.md) to set up a tunnel and develop locally with it.
 
 ## How to create a new Component Collection
 
