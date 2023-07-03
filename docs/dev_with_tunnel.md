@@ -12,7 +12,7 @@ yarn serve --tunnel
 
 You can check that the server is working by visiting `https://127.0.0.1:3005`. In addition, the `build_dev` folder has a `quick-tunnel.txt` file with the URL of the active tunnel. Visit that public URL and confirm that it serves the files in `build_dev`. 
 
-The `--tunnel` option requests the creation of a [Cloudflare quick tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/do-more-with-tunnels/trycloudflare/) which provides a different URL every time the web server is started. It is also possible to configure a permanent tunnel URL in the environment variables. In that case, your local `.env.dev` file should set the URL of the `TUNNEL_URL` variable to the URL of the permanent tunnel. For example, you can set up a [permanent tunneel with Pagekite](pagekite.md).
+The `--tunnel` (or `-t`) option requests the creation of a [Cloudflare quick tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/do-more-with-tunnels/trycloudflare/) which provides a different URL every time the web server is started. It is also possible to configure a permanent tunnel URL in the environment variables. In that case, your local `.env.dev` file should set the URL of the `TUNNEL_URL` variable to the URL of the permanent tunnel. For example, you can set up a [permanent tunneel with Pagekite](pagekite.md).
 
 Next, **in another terminal**, run
 
