@@ -41,7 +41,12 @@ module.exports = function startServer(dirname, port) {
 
     const serverProcess = exec(cmd);
 
-    serverProcess.stdout.on('data', function (data) {
+    serverProcess.stdout.on('data', (data) => {
+        console.log(data);
+    });
+
+    process.stderr.on('data', (data) => {
+        console.log(chalk('Error: Cannot start web server'));
         console.log(data);
     });
 
