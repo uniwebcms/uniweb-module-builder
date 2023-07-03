@@ -86,7 +86,7 @@ export default (props) => {
 
 You are now ready to work on the code of the module and see the results live. For example, lets change the text in `Block.js` so that the components renders the text "Hello World 2023!!!".
 
-Since we have run `yarn watch:tunnel` earlier, changes to the code should trigger a rebuild of the files under the `dist` folder. To see the effect of the change, can reload the website. If the old text is visible, disable the JavaScript caching on your browser and the reload the site again.
+Since we have run `yarn watch` earlier, changes to the code should trigger a rebuild of the files under the `dist` folder. To see the effect of the change, can reload the website. If the old text is visible, disable the JavaScript caching on your browser and the reload the site again.
 
 This is also a good moment to configure the "dev mode" of the site. While not strictly necessary now, it is good to know that we can give a temporary URL for our dev tunnel:
 
