@@ -44,7 +44,7 @@ Edit the properties of the docufolio...
 
 ![props](assets/docufolio_info.png)
 
-... and set the **Custom Styler** to the URL of the tunnel `https://[kite_name].pagekite.me/SimpleCollection`. This is a temporary setting because it should be set to the URL of the production version of the module, but we don't have that yet, so we use the dev URL that we have.
+... and set the **Custom Styler** to the URL of the tunnel `https://[tunnel-sub-domain].trycloudflare.com/SimpleCollection`. This is a temporary setting because it should be set to the URL of the production version of the module, but we don't have that yet, so we use the dev URL that we have.
 
 ![custom_styler](assets/custom_styler.png)
 
