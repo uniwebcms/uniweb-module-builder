@@ -46,7 +46,7 @@ module.exports = function startServer(dirname, port) {
     });
 
     process.stderr.on('data', (data) => {
-        console.log(chalk('Error: Cannot start web server'));
+        console.log(chalk.red.bold('Error: Cannot start web server'));
         console.log(data);
     });
 
