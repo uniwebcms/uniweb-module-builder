@@ -21,8 +21,8 @@ https://[gh-account-name].github.io/[repo-name]/[module-name]
 ```
 
 For example, if your GitHub account name is `cvworks`, the repository name is `uniweb-modules`, and the module name is `SimpleCollection`, 
-then you can use the `https://cvworks.github.io/uniweb-modules/SimpleCollection` as the value of the Web styler of a 
-Docufolio in your Uniweb.
+then the URL `https://cvworks.github.io/uniweb-modules/SimpleCollection` is the value you use to [set the Web Styler of a 
+Docufolio in Uniweb](https://github.com/uniwebcms/uniweb-module-builder/blob/main/docs/dev_with_tunnel.md#connecting-the-module-to-a-website).
 
 ## Optional: manually trigger the build and deploy workflow
 
