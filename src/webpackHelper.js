@@ -11,8 +11,14 @@ let uuid = uuidv4();
 module.exports = function (argv, __dirname) {
     const { env } = argv;
 
-    const { PUBLIC_URL, TUNNEL_URL, npm_lifecycle_event, CF_PAGES_URL, CF_PAGES_BRANCH } =
-        process.env;
+    const {
+        PUBLIC_URL,
+        TUNNEL_URL,
+        npm_lifecycle_event,
+        CF_PAGES_URL,
+        CF_PAGES_BRANCH,
+        GH_PAGES_URL,
+    } = process.env;
 
     let mode = argv.mode;
     let module = process.env.TARGET_COLLECTION;
@@ -29,7 +35,7 @@ module.exports = function (argv, __dirname) {
     if (!mode) console.log('Build mode not specified in script!');
 
     if (CF_PAGES_URL) {
-        console.log('Received public path from Cloudflare:', CF_PAGES_URL);
+        console.log('Received public URL from Cloudflare:', CF_PAGES_URL);
 
         if (!mode && CF_PAGES_BRANCH) {
             if (CF_PAGES_BRANCH === 'main' || CF_PAGES_BRANCH === 'master') {
@@ -37,6 +43,16 @@ module.exports = function (argv, __dirname) {
             } else mode = 'development';
 
             console.log('Set build mode:', mode, 'based on branch:', CF_PAGES_BRANCH);
+        }
+    }
+
+    if (GH_PAGES_URL) {
+        console.log('Received public URL from GitHub Pages:', GH_PAGES_URL);
+
+        if (!mode) {
+            mode = 'production';
+
+            console.log('Set build mode:', mode);
         }
     }
 
@@ -59,13 +75,15 @@ module.exports = function (argv, __dirname) {
         module = modules[0];
     }
 
-    if (mode === 'production' && !CF_PAGES_URL && !PUBLIC_URL) {
+    if (mode === 'production' && !CF_PAGES_URL && !PUBLIC_URL && !GH_PAGES_URL) {
         throw new Error('No public url received under production mode');
     }
 
     if (isTunnel && !TUNNEL_URL) {
         throw new Error('No public url received under tunnel mode');
     }
+
+    const FINAL_PUBLIC_URL = CF_PAGES_URL || GH_PAGES_URL || PUBLIC_URL;
 
     switch (npm_lifecycle_event) {
         case 'build':
@@ -74,9 +92,7 @@ module.exports = function (argv, __dirname) {
                     devPublicPath = `${CF_PAGES_URL}/${module}/${uuid}/`;
                 }
             } else {
-                prodPublicPath = CF_PAGES_URL
-                    ? `${CF_PAGES_URL}/${module}/${uuid}/`
-                    : `${PUBLIC_URL}/${module}/${uuid}/`;
+                prodPublicPath = `${FINAL_PUBLIC_URL}/${module}/${uuid}/`;
             }
             dest = path.resolve(__dirname, '../dist', module);
             break;
@@ -95,13 +111,11 @@ module.exports = function (argv, __dirname) {
             dest = path.resolve(__dirname, '../build_dev', module);
             break;
         case 'watch:local':
-            devPublicPath = `http://localhost:3005/${module}/${uuid}/`;
+            devPublicPath = `http://localhost:${process.env.DEV_SERVER_PORT}/${module}/${uuid}/`;
             dest = path.resolve(__dirname, '../build_dev', module);
             break;
         case 'build:prod':
-            prodPublicPath = CF_PAGES_URL
-                ? `${CF_PAGES_URL}/${module}/${uuid}/`
-                : `${PUBLIC_URL}/${module}/${uuid}/`;
+            prodPublicPath = `${FINAL_PUBLIC_URL}/${module}/${uuid}/`;
             dest = path.resolve(__dirname, '../dist', module);
             break;
         case 'build:prod-commit':
@@ -119,7 +133,8 @@ module.exports = function (argv, __dirname) {
         'Start building process for module:',
         module,
         'with public path:',
-        mode === 'development' ? devPublicPath : prodPublicPath
+        mode === 'development' ? devPublicPath : prodPublicPath,
+        `under ${mode} mode`
     );
 
     const exposes = {};
