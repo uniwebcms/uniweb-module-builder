@@ -1,6 +1,6 @@
 # Build and Deploy with GitHub Actions
 
-1. Go to the `Settings` tab of the repository
+1. Go to the `Settings` tab of your [Uniweb modules repository](https://github.com/uniwebcms/website-components-template)
 
 2. Go the the `Pages` tab of the left panel
 
@@ -10,11 +10,11 @@
 
 4. Go to the `Actions` tab of the repository
 
-5. Accept the current workflow by clocking on the grrn button labeller "I understand my workflows, go ahead an enable them"
+5. Accept the current workflow by clicking on the green button labelled "I understand my workflows, go ahead an enable them"
 
 <kbd> <img src="assets/allow_gh_workflow.png" /> </kbd>
 
-That is all. Now, when you commit changes to the `Main` branch, the module will be build and deployed at:
+That is all. Now, when you commit changes to the `main` branch, the module will be built and deployed at:
 
 ```text
 https://[gh-account-name].github.io/[repo-name]/[module-name]
@@ -28,8 +28,8 @@ Docufolio in your Uniweb.
 
 1. Go to the `Actions` tab of the repository
 
-2. Go the the `Buld and deploy` tab of the left panel
+2. Go the the `Build and Deploy` tab of the left panel
 
-3. Open the **Run workflow** main on the main panel and select **Run workflow**
+3. Open the **Run workflow** menu on the main panel and click on the green button labelled **Run workflow**
 
 <kbd> <img src="assets/manual_run_gh_workflow.png" /> </kbd>
