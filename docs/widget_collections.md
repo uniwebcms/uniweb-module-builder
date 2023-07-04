@@ -32,9 +32,9 @@ Configure the Cloudflare Pages project as shown below.
 
 ![img.png](docs/assets/cloudflare/simpleBuildSetting.png)
 
-The **target collection** of the build is defined in the environment variable `TARGET_COLLECTION` located in the `.env` file of this repository. The default value is `MainCollection`. You can edit the `.env` file and set a new value for `TARGET_COLLECTION`, or you can manage its value directly in your Cloudflare project, which has higher precedence that the one in `.env`.
+The **target collection** of the build is defined in the environment variable `TARGET_MODULE` located in the `.env` file of this repository. The default value is `MainCollection`. You can edit the `.env` file and set a new value for `TARGET_MODULE`, or you can manage its value directly in your Cloudflare project, which has higher precedence that the one in `.env`.
 
-> To set the variable value in Cloudflare, click on the "Environment variables (advanced)" link of your project. Alternatively, you can add the value in the build command itself `TARGET_COLLECTION="another_collection" yarn build`, where "another_collection" is the actual name of your target collection.
+> To set the variable value in Cloudflare, click on the "Environment variables (advanced)" link of your project. Alternatively, you can add the value in the build command itself `TARGET_MODULE="another_collection" yarn build`, where "another_collection" is the actual name of your target collection.
 
 Every time you commit to your master or main branch, a production build will be executed automatically.
 
@@ -117,7 +117,7 @@ Make sure that the [Yarn package manager](https://yarnpkg.com/) is installed and
 yarn
 ```
 
-Before building, make sure that the `TARGET_COLLECTION` environment variable is set with the name of the collection that you want to build. You can write the setting in `.env` if you want to commit the change, or in `.env.local` if you want to be ignored in the commit (ideal when working with other team members working on different collections).
+Before building, make sure that the `TARGET_MODULE` environment variable is set with the name of the collection that you want to build. You can write the setting in `.env` if you want to commit the change, or in `.env.local` if you want to be ignored in the commit (ideal when working with other team members working on different collections).
 
 You can build and commit a new distribution bundle by running the `build:prod-commit` action.
 
@@ -125,7 +125,7 @@ You can build and commit a new distribution bundle by running the `build:prod-co
 yarn build:prod-commit
 ```
 
-> You can also set the `TARGET_COLLECTION` in the build command using this syntax: `TARGET_COLLECTION=[some_name] yarn build:prod-commit`
+> You can also set the `TARGET_MODULE` in the build command using this syntax: `TARGET_MODULE=[some_name] yarn build:prod-commit`
 
 ### Developing with a localhost tunnel
 

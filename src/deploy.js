@@ -57,7 +57,7 @@ module.exports = function deploy(__dirname, commit = false) {
     // const args = process.argv.slice(2);
     // const commit = args.includes('commit');
 
-    const module = process.env.TARGET_COLLECTION;
+    const module = process.env.TARGET_MODULE;
 
     if (!module || !fs.existsSync(path.resolve(__dirname, '../src', module))) {
         console.log('no module specified or unable to find module, abort');

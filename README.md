@@ -33,7 +33,7 @@ The `getConfigData` function takes `argv` and `__dirname` as parameters and anal
 
 -   `PUBLIC_URL` - Reflects `output.publicPath` under `prod` mode
 -   `TUNNEL_URL` - rReflects `output.publicPath` under `tunnel` mode
--   `TARGET_COLLECTION` - The name of target widget collection
+-   `TARGET_MODULE` - The name of target widget collection
 -   `DEV_SERVER_PORT` - Reflects `devServer.port` under `dev` mode
 -   `REMOTE_TYPE` - Reflects the `name` of `ModuleFederationPlugin`, default is `WebsiteRemote`
 
@@ -69,7 +69,7 @@ The `release` function takes `__dirname` as a parameter and analyzes the environ
 
 ###### Involved environment variables
 
--   `TARGET_COLLECTION` - The name of target widget collection
+-   `TARGET_MODULE` - The name of target widget collection
 
 Example
 
@@ -89,7 +89,7 @@ The `deploy` function takes `__dirname` as a parameter and analyzes the environm
 
 ###### Involved environment variables
 
--   `TARGET_COLLECTION` - The name of target widget collection
+-   `TARGET_MODULE` - The name of target widget collection
 -   `OUTPUT_COPY_DIR` - The path to the local target Github repository
 
 Example

@@ -1,14 +1,94 @@
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const fs = require('fs-extra');
+const { URL } = require('url');
 const postpresetenv = require('postcss-preset-env');
 const tailwindcss = require('tailwindcss');
 const autoprefixer = require('autoprefixer');
-const { ModuleFederationPlugin } = require('webpack').container;
+const webpack = require('webpack');
+const chalk = require('chalk');
+const CompressionPlugin = require('compression-webpack-plugin');
+
+const { ModuleFederationPlugin } = webpack.container;
 
 let uuid = uuidv4();
 
-module.exports = function (argv, __dirname) {
+function validUrl(url) {
+    if (!url) return '';
+
+    try {
+        url = new URL(url);
+    } catch (error) {
+        console.log(`Invalid URL '${url}'`);
+        console.log(error);
+        return false;
+    }
+
+    const href = `${url.protocol}//${url.hostname}${url.pathname}`;
+
+    return href.endsWith('/') ? href.slice(0, -1) : href;
+}
+
+function getWebpackPlugins(federateModuleName, exposes, devUrl) {
+    return [
+        new ModuleFederationPlugin({
+            name: federateModuleName,
+            filename: 'remoteEntry.js',
+            exposes,
+            shared: {
+                react: { singleton: true, requiredVersion: '^18.2.0' },
+                'react-dom': {
+                    singleton: true,
+                    requiredVersion: '^18.2.0',
+                },
+                'react-router-dom': {
+                    singleton: true,
+                    requiredVersion: '^6.4.2',
+                },
+                twind: { singleton: true, requiredVersion: '^0.16.17' },
+                '@twind/react': {
+                    singleton: true,
+                    requiredVersion: '^0.0.4',
+                },
+            },
+        }),
+        // Enable gzip compression
+        new CompressionPlugin({
+            filename: '[path][base].gzip',
+            algorithm: 'gzip',
+            test: /\.(js|css|html|svg)$/,
+            threshold: 10240,
+            minRatio: 0.8,
+            deleteOriginalAssets: false,
+        }),
+        // // Enable Brotli compression
+        // new CompressionPlugin({
+        //     filename: '[path][base].br',
+        //     algorithm: 'brotliCompress',
+        //     test: /\.(js|css|html|svg)$/,
+        //     threshold: 10240,
+        //     minRatio: 0.8,
+        //     deleteOriginalAssets: false,
+        // }),
+        function () {
+            this.hooks.done.tap('BuildCompletePlugin', (stats) => {
+                if (stats.compilation.errors.length === 0) {
+                    // console.log('Webpack build completed successfully!');
+                    const separator = '-'.repeat(40); // Dashed line separator
+                    const message = chalk.green.bold('Dev URL: ') + chalk.white(devUrl);
+
+                    console.log('\n' + separator);
+                    console.log(message);
+                    console.log(separator + '\n');
+                } else {
+                    console.log('Webpack build encountered errors.');
+                }
+            });
+        },
+    ];
+}
+
+module.exports = function (argv, rootDir) {
     const { env } = argv;
 
     const {
@@ -20,12 +100,18 @@ module.exports = function (argv, __dirname) {
         GH_PAGES_URL,
     } = process.env;
 
+    PUBLIC_URL = validUrl(PUBLIC_URL);
+    CF_PAGES_URL = validUrl(CF_PAGES_URL);
+    TUNNEL_URL = validUrl(TUNNEL_URL);
+
     let mode = argv.mode;
-    let module = process.env.TARGET_COLLECTION;
+    let module = process.env.TARGET_MODULE;
     let federateModuleName = process.env.REMOTE_TYPE || 'WebsiteRemote';
 
     const isTunnel = !!env.tunnel;
     const isLocal = !!env.local;
+
+    const buildDevDir = path.resolve(rootDir, '../build_dev');
 
     let prodPublicPath;
     let devPublicPath;
@@ -66,7 +152,7 @@ module.exports = function (argv, __dirname) {
         console.log('No module specified, try use first module');
 
         const modules = fs
-            .readdirSync(path.resolve(__dirname, '../src'), {
+            .readdirSync(path.resolve(rootDir, '../src'), {
                 withFileTypes: true,
             })
             .filter((dirent) => dirent.isDirectory() && dirent.name !== 'utils')
@@ -80,7 +166,9 @@ module.exports = function (argv, __dirname) {
     }
 
     if (isTunnel && !TUNNEL_URL) {
-        throw new Error('No public url received under tunnel mode');
+        TUNNEL_URL = fs.readFileSync(`${buildDevDir}/quick-tunnel.txt`, 'utf-8');
+
+        if (!TUNNEL_URL) throw new Error('Missing tunnel URL');
     }
 
     const FINAL_PUBLIC_URL = CF_PAGES_URL || GH_PAGES_URL || PUBLIC_URL;
@@ -94,7 +182,7 @@ module.exports = function (argv, __dirname) {
             } else {
                 prodPublicPath = `${FINAL_PUBLIC_URL}/${module}/${uuid}/`;
             }
-            dest = path.resolve(__dirname, '../dist', module);
+            dest = path.resolve(rootDir, '../dist', module);
             break;
         case 'build:dev':
             if (CF_PAGES_URL) {
@@ -104,11 +192,11 @@ module.exports = function (argv, __dirname) {
                     'build:dev should not be used under a non-Cloudflare environment, please use watch:local instead'
                 );
             }
-            dest = path.resolve(__dirname, '../dist', module);
+            dest = path.resolve(rootDir, '../dist', module);
             break;
         case 'watch:tunnel':
             devPublicPath = `${TUNNEL_URL}/${module}/${uuid}/`;
-            dest = path.resolve(__dirname, '../build_dev', module);
+            dest = path.resolve(buildDevDir, module);
             break;
         case 'watch:local':
             devPublicPath = `http://localhost:${process.env.DEV_SERVER_PORT}/${module}/${uuid}/`;
@@ -120,12 +208,12 @@ module.exports = function (argv, __dirname) {
             break;
         case 'build:prod-commit':
             prodPublicPath = `${PUBLIC_URL}/${module}/${uuid}/`;
-            dest = path.resolve(__dirname, '../dist', module);
+            dest = path.resolve(rootDir, '../dist', module);
             break;
         case 'build:prod-copy':
         case 'build:prod-copy-commit':
             prodPublicPath = `${PUBLIC_URL}/${module}/${uuid}/`;
-            dest = path.resolve(__dirname, '../build_dev', module);
+            dest = path.resolve(rootDir, '../build_dev', module);
             break;
     }
 
@@ -140,9 +228,7 @@ module.exports = function (argv, __dirname) {
     const exposes = {};
 
     // get module that need build and deploy
-    const moduleExists = fs
-        .readdirSync(path.resolve(__dirname, '../src'))
-        .find((m) => m === module);
+    const moduleExists = fs.readdirSync(path.resolve(rootDir, '../src')).find((m) => m === module);
 
     if (!moduleExists) {
         throw new Error('Module not exist!');
@@ -150,7 +236,7 @@ module.exports = function (argv, __dirname) {
 
     if (moduleExists) {
         // write dynamic entry.js
-        const entryFile = path.resolve(__dirname, `entry.js`);
+        const entryFile = path.resolve(rootDir, `entry.js`);
         const entryContent = `import("../src/${module}");\n`;
 
         fs.writeFileSync(entryFile, entryContent.trim(), { flag: 'w' });
@@ -159,7 +245,7 @@ module.exports = function (argv, __dirname) {
         exposes[`./widgets`] = `../src/${module}`;
 
         // add tailwindcss loader if needed
-        const tailwindPath = path.resolve(__dirname, '..', 'src', module, 'tailwind.config.js');
+        const tailwindPath = path.resolve(rootDir, '..', 'src', module, 'tailwind.config.js');
 
         if (fs.existsSync(tailwindPath)) {
             tailwindCssLoader = {
@@ -192,7 +278,7 @@ module.exports = function (argv, __dirname) {
                 };
 
                 fs.outputJsonSync(
-                    path.resolve(__dirname, '../build_dev', 'remoteRegistry.json'),
+                    path.resolve(rootDir, '../build_dev', 'remoteRegistry.json'),
                     registryContent
                 );
             } else {
@@ -214,7 +300,7 @@ module.exports = function (argv, __dirname) {
 
     const config = {
         mode,
-        entry: path.resolve(__dirname, 'entry.js'),
+        entry: path.resolve(rootDir, 'entry.js'),
         resolve: {
             extensions: ['.jsx', '.js', '.json'],
         },
@@ -307,32 +393,11 @@ module.exports = function (argv, __dirname) {
                 },
             ],
         },
-        plugins: [
-            new ModuleFederationPlugin({
-                name: federateModuleName,
-                filename: 'remoteEntry.js',
-                exposes,
-                shared: {
-                    react: { singleton: true, requiredVersion: '^18.2.0' },
-                    'react-dom': {
-                        singleton: true,
-                        requiredVersion: '^18.2.0',
-                    },
-                    'react-router-dom': {
-                        singleton: true,
-                        requiredVersion: '^6.4.2',
-                    },
-                    twind: { singleton: true, requiredVersion: '^0.16.17' },
-                    '@twind/react': {
-                        singleton: true,
-                        requiredVersion: '^0.0.4',
-                    },
-                },
-            }),
-        ],
+        plugins: getWebpackPlugins(federateModuleName, exposes, `${TUNNEL_URL}/${module}`),
         watchOptions: {
             ignored: ['**/node_modules'],
         },
+        stats: 'minimal', // https://webpack.js.org/configuration/stats/
     };
 
     return {

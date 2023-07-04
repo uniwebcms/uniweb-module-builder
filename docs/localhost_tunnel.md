@@ -69,14 +69,14 @@ Follow the instructions to [set up a tunnel locally](https://developers.cloudfla
 
 ## Configuring a remote Uniweb website to use a tunnel to localhost
 
-In your `.env.dev` file, configure the publicly accessible URL that points to your localhost. Also set the name of your target widget collection in `TARGET_COLLECTION`.
+In your `.env.dev` file, configure the publicly accessible URL that points to your localhost. Also set the name of your target widget collection in `TARGET_MODULE`.
 
 ```bash
 # A publicly accessible URL that points to localhost
 TUNNEL_URL="the-public-tunnel_url"
 
 # Name of the widget collection to build
-TARGET_COLLECTION='name-of-the-collection'
+TARGET_MODULE='name-of-the-collection'
 ```
 
 Then run the command command
@@ -87,7 +87,7 @@ yarn watch:tunnel
 
 The `watch:tunnel` argument builds in `development` mode with the `--watch` option, has the compiled files are locally stored, and modifies the `latest_version.txt` file as the local build changes. The destination directory is `build_dev/[name]`.
 
-> You can also specify the name of the target collection when starting the script: `TARGET_COLLECTION=[name] yarn watch:tunnel`
+> You can also specify the name of the target collection when starting the script: `TARGET_MODULE=[name] yarn watch:tunnel`
 
 ### Setting the tunnel URL in a website
 

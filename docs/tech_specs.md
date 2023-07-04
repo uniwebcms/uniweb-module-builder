@@ -18,7 +18,7 @@ Open a target docufulio and set it custom styler.
 
 For a **Live Uniweb instance**, the possible values are
 
-`[PUBLIC_URL]/[TARGET_COLLECTION]` or `[TUNNEL_URL]/[TARGET_COLLECTION]`
+`[PUBLIC_URL]/[TARGET_MODULE]` or `[TUNNEL_URL]/[TARGET_MODULE]`
 
 The **PUBLIC_URL** and **TUNNEL_URL** are usually the variable set in the `.env` files (e.g. `.env` or `.env.dev`). However, when usingCloudflare automatic builds, the `PUBLIC_URL` is normally set by the builder. In that case, use the `Domain` provided by the Cloudflare project instead.
 
@@ -32,7 +32,7 @@ The main environment variable is `PUBLIC_URL` because it is used by Webpack to k
 
 ```bash
 # The name of the collection to build (often overridden via script arguments)
-TARGET_COLLECTION=""
+TARGET_MODULE=""
 
 # Used by Webpack to locate generated code chunks and referenced asset files
 PUBLIC_URL=""
@@ -62,10 +62,10 @@ Each scenario has an associated predefined script.
 The scripts are run with a similar command
 
 ```bash
-TARGET_COLLECTION=[name] yarn [argument]
+TARGET_MODULE=[name] yarn [argument]
 ```
 
-The `TARGET_COLLECTION=[name]` can be omitted in order to use the value define in the `.env` file(s). The script `argument` can be one of the following:
+The `TARGET_MODULE=[name]` can be omitted in order to use the value define in the `.env` file(s). The script `argument` can be one of the following:
 
 - `build` auto detects whether the mode is `development` or `production` based on the branch name defined in `CF_PAGES_BRANCH` (set by Cloudflare builds). It is the recommended argument for Cloudflare projects.
 
