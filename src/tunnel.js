@@ -1,13 +1,16 @@
-const { spawn } = require('child_process');
+// const { spawn } = require('child_process');
+const exec = require('child_process').exec;
 
 module.exports = function createTunnel(port = 3005) {
     return new Promise((resolve, reject) => {
         // Can use 'create', 'my-tunnel' as well
-        const process = spawn('yarn run cloudflared', [
-            'tunnel',
-            '--url',
-            `http://localhost:${port}`,
-        ]);
+        // const process = spawn('yarn run cloudflared', [
+        //     'tunnel',
+        //     '--url',
+        //     `http://localhost:${port}`,
+        // ]);
+
+        const process = exec('yarn run cloudflared tunnel --url http://localhost:3005');
 
         // process.stdout.on('data', (data) => {
         //     const output = data.toString();
