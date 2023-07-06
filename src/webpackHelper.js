@@ -404,6 +404,35 @@ module.exports = function (argv, rootDir) {
     const { TARGET_MODULE } = process.env;
 
     try {
+        if (TARGET_MODULE === '*') {
+            console.log('Build all modules...\n');
+
+            const modules = fs
+                .readdirSync(path.resolve(rootDir, '../src'), {
+                    withFileTypes: true,
+                })
+                .filter(
+                    (dirent) =>
+                        dirent.isDirectory() &&
+                        dirent.name !== 'utils' &&
+                        !dirent.name.startsWith('_') &&
+                        !dirent.name.startsWith('.')
+                )
+                .map((dirent) => dirent.name);
+
+            if (!modules.length) throw new Error('No module available, abort');
+
+            let configs = [];
+            for (const module of modules) {
+                process.env.TARGET_MODULE = module.trim();
+
+                const { config } = buildWebpackConfig(process.env, argv, rootDir);
+                configs.push(config);
+            }
+
+            return { config: configs };
+        }
+
         let modules = TARGET_MODULE.split(',').filter(Boolean);
 
         if (modules.length === 0) {
@@ -413,10 +442,18 @@ module.exports = function (argv, rootDir) {
                 .readdirSync(path.resolve(rootDir, '../src'), {
                     withFileTypes: true,
                 })
-                .filter((dirent) => dirent.isDirectory() && dirent.name !== 'utils')
+                .filter(
+                    (dirent) =>
+                        dirent.isDirectory() &&
+                        dirent.name !== 'utils' &&
+                        !dirent.name.startsWith('_') &&
+                        !dirent.name.startsWith('.')
+                )
                 .map((dirent) => dirent.name);
 
             module = modules[0];
+
+            if (!module) throw new Error('No module available, abort');
 
             process.env.TARGET_MODULE = module;
 
