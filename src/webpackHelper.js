@@ -11,8 +11,6 @@ const CompressionPlugin = require('compression-webpack-plugin');
 
 const { ModuleFederationPlugin } = webpack.container;
 
-let uuid = uuidv4();
-
 function validUrl(url) {
     if (!url) return '';
 
@@ -29,7 +27,7 @@ function validUrl(url) {
     return href.endsWith('/') ? href.slice(0, -1) : href;
 }
 
-function getWebpackPlugins(federateModuleName, exposes, devUrl) {
+function getWebpackPlugins(federateModuleName, exposes, publicUrl) {
     return [
         new ModuleFederationPlugin({
             name: federateModuleName,
@@ -75,7 +73,7 @@ function getWebpackPlugins(federateModuleName, exposes, devUrl) {
                 if (stats.compilation.errors.length === 0) {
                     // console.log('Webpack build completed successfully!');
                     const separator = '-'.repeat(40); // Dashed line separator
-                    const message = chalk.green.bold('Dev URL: ') + chalk.white(devUrl);
+                    const message = chalk.green.bold('PUBLIC URL: ') + chalk.white(publicUrl);
 
                     console.log('\n' + separator);
                     console.log(message);
@@ -88,30 +86,35 @@ function getWebpackPlugins(federateModuleName, exposes, devUrl) {
     ];
 }
 
-module.exports = function (argv, rootDir) {
-    const { env } = argv;
+function buildWebpackConfig(env, argv, rootDir) {
+    let uuid = uuidv4();
 
-    const {
+    let {
         PUBLIC_URL,
         TUNNEL_URL,
         npm_lifecycle_event,
         CF_PAGES_URL,
         CF_PAGES_BRANCH,
         GH_PAGES_URL,
-    } = process.env;
+        REMOTE_TYPE,
+        TARGET_MODULE,
+        DEV_SERVER_PORT,
+    } = env;
 
     PUBLIC_URL = validUrl(PUBLIC_URL);
     CF_PAGES_URL = validUrl(CF_PAGES_URL);
     TUNNEL_URL = validUrl(TUNNEL_URL);
+    GH_PAGES_URL = validUrl(GH_PAGES_URL);
 
     let mode = argv.mode;
-    let module = process.env.TARGET_MODULE;
-    let federateModuleName = process.env.REMOTE_TYPE || 'WebsiteRemote';
+    let module = TARGET_MODULE;
+    let federateModuleName = REMOTE_TYPE || 'WebsiteRemote';
 
-    const isTunnel = !!env.tunnel;
-    const isLocal = !!env.local;
+    const isTunnel = !!argv.env.tunnel;
+    const isLocal = !!argv.env.local;
 
     const buildDevDir = path.resolve(rootDir, '../build_dev');
+    const buildProdDir = path.resolve(rootDir, '../dist');
 
     let prodPublicPath;
     let devPublicPath;
@@ -146,19 +149,6 @@ module.exports = function (argv, rootDir) {
         console.log('No build mode specified, build with production mode');
 
         mode = 'production';
-    }
-
-    if (!module) {
-        console.log('No module specified, try use first module');
-
-        const modules = fs
-            .readdirSync(path.resolve(rootDir, '../src'), {
-                withFileTypes: true,
-            })
-            .filter((dirent) => dirent.isDirectory() && dirent.name !== 'utils')
-            .map((dirent) => dirent.name);
-
-        module = modules[0];
     }
 
     if (mode === 'production' && !CF_PAGES_URL && !PUBLIC_URL && !GH_PAGES_URL) {
@@ -199,21 +189,21 @@ module.exports = function (argv, rootDir) {
             dest = path.resolve(buildDevDir, module);
             break;
         case 'watch:local':
-            devPublicPath = `http://localhost:${process.env.DEV_SERVER_PORT}/${module}/${uuid}/`;
-            dest = path.resolve(__dirname, '../build_dev', module);
+            devPublicPath = `http://localhost:${DEV_SERVER_PORT}/${module}/${uuid}/`;
+            dest = path.resolve(buildDevDir, module);
             break;
         case 'build:prod':
             prodPublicPath = `${FINAL_PUBLIC_URL}/${module}/${uuid}/`;
-            dest = path.resolve(__dirname, '../dist', module);
+            dest = path.resolve(buildProdDir, module);
             break;
         case 'build:prod-commit':
             prodPublicPath = `${PUBLIC_URL}/${module}/${uuid}/`;
-            dest = path.resolve(rootDir, '../dist', module);
+            dest = path.resolve(buildProdDir, module);
             break;
         case 'build:prod-copy':
         case 'build:prod-copy-commit':
             prodPublicPath = `${PUBLIC_URL}/${module}/${uuid}/`;
-            dest = path.resolve(rootDir, '../build_dev', module);
+            dest = path.resolve(buildDevDir, module);
             break;
     }
 
@@ -231,7 +221,7 @@ module.exports = function (argv, rootDir) {
     const moduleExists = fs.readdirSync(path.resolve(rootDir, '../src')).find((m) => m === module);
 
     if (!moduleExists) {
-        throw new Error('Module not exist!');
+        throw new Error(`Module: ${module} not exist!`);
     }
 
     if (moduleExists) {
@@ -311,7 +301,7 @@ module.exports = function (argv, rootDir) {
             publicPath,
         },
         devServer: {
-            port: process.env.DEV_SERVER_PORT,
+            port: DEV_SERVER_PORT,
         },
         module: {
             rules: [
@@ -393,7 +383,7 @@ module.exports = function (argv, rootDir) {
                 },
             ],
         },
-        plugins: getWebpackPlugins(federateModuleName, exposes, `${TUNNEL_URL}/${module}`),
+        plugins: getWebpackPlugins(federateModuleName, exposes, publicPath),
         watchOptions: {
             ignored: ['**/node_modules'],
         },
@@ -408,4 +398,48 @@ module.exports = function (argv, rootDir) {
         exposes,
         tailwindCssLoader,
     };
+}
+
+module.exports = function (argv, rootDir) {
+    const { TARGET_MODULE } = process.env;
+
+    try {
+        let modules = TARGET_MODULE.split(',').filter(Boolean);
+
+        if (modules.length === 0) {
+            console.log('No target module specified, try build first module...\n');
+
+            const modules = fs
+                .readdirSync(path.resolve(rootDir, '../src'), {
+                    withFileTypes: true,
+                })
+                .filter((dirent) => dirent.isDirectory() && dirent.name !== 'utils')
+                .map((dirent) => dirent.name);
+
+            module = modules[0];
+
+            process.env.TARGET_MODULE = module;
+
+            return buildWebpackConfig(process.env, argv, rootDir);
+        } else if (modules.length === 1) {
+            console.log('Execute single build mode...\n');
+            process.env.TARGET_MODULE = modules[0];
+
+            return buildWebpackConfig(process.env, argv, rootDir);
+        } else {
+            console.log('Execute bulk build mode...\n');
+            let configs = [];
+
+            for (const module of modules) {
+                process.env.TARGET_MODULE = module.trim();
+
+                const { config } = buildWebpackConfig(process.env, argv, rootDir);
+                configs.push(config);
+            }
+
+            return { config: configs };
+        }
+    } catch (error) {
+        throw error;
+    }
 };
