@@ -12,14 +12,6 @@ Install `@uniwebcms/module-builder` using yarn:
 yarn add @uniwebcms/module-builder
 ```
 
-## Next steps
+## Next step
 
 - [Content and template editing with  Docufolio ](docs/docufolio.md)
-
-- [How to create a compliant website module](docs/docufolio.md#how-to-create-a-compliant-website-module)
-
-- [Web components](docs/components.md)
-
-- [Web themes](docs/themes.md)
-
-- [Web fonts](docs/fonts.md)

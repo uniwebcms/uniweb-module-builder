@@ -87,3 +87,7 @@ It can also be set as the web theme of a website.
 ## Theming a web component
 
 [Web components](components.md#theming-a-web-component) are designed to use the dynamic web theme provided by a webiste.
+
+## Next step
+
+- [Web fonts](docs/fonts.md)

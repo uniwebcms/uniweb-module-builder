@@ -50,3 +50,41 @@ It is worth learning more about [CSS variables in Tailwind](https://tailwindcss.
 <div
     className={`text-[var(--primary, #ff0000)]`}
 ></div>
+```
+
+### Standard web components
+
+The list of component names that are reserved for the **standard building blocks** that are commonly needed accross different types of websites.
+
+The standardization of building blocks goes beyond their name by also providing the expected behaviour for each of them. When developing a standard-named web components **a developer must ensure** that the component accepts the set of standard parameters and produces the rendering output that are defined in the guidelines for that component category. 
+
+The following is the complete list of standard component categories together with the links to the guidelines for them.
+
+- [Article](docs/category/Article.md)
+- [Card](docs/category/Card.md)
+- [Header](docs/category/Header.md)
+- [List](docs/category/List.md)
+- [Quote](docs/category/Quote.md)
+- [Map](docs/category/Map.md)
+- [Spotlight](docs/category/Spotlight.md)
+- [PageHeader](docs/category/PageHeader.md)
+- [PageFooter](docs/category/PageFooter.md)
+
+> **Note** <br>
+> While the category names above are in singular form, their implementation often requires rendering one or more instances of that category. For example, a section of category `Card` might render several cards.
+
+### How to create a compliant website module
+
+A website module is required to export implementations for all the standard components. In addition, the module might implement as many custom components as desired.
+
+If a module does not want to implement some standard components, it can import them from some library (e.g. the [Express library](https://github.com/uniwebcms/express)) and then re-export them. What's important is that every standard component category is defined so that swapping remote modules does not break the rendering of a website.
+
+### Web Accessibility
+
+### Multilingualism
+
+### Responsive design
+
+## Next step
+
+- [Web themes](docs/themes.md)
