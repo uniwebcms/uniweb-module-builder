@@ -1,4 +1,4 @@
-# Customizing the default theme for your websites and templates.
+# Customizing the default theme for websites and templates
 
 The Uniweb framework includes a type of profile named `web theme` that is designed to collect information about colors, fonts, spacing, and variables. Web themes can be reused accross multiple websites, providing an effective strategy for consistently managing branding preferences.
 
