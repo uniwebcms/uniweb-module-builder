@@ -29,7 +29,7 @@ The standardization of **building blocks** goes beyond their name by also provid
 
 ## Modules and web components
 
-A website module is a collection of web components. In Uniweb, a web component is a React JS component whose props are 4 objects: `profile`, `block`, `page` , and `website`. The `profile` object represents the source data of a website. The `block` object contains the settings for the component, which is considered a **building block** within a webpage. The `page` object provides information about the current webpage being rendered as a sequence of buildign blocks. Finally, the `website` provides information about the entire website. Most components only need to work with the `profile` and `block` props. [Learn more about Uniweb components](components.md)
+A website module is a collection of web components. In Uniweb, a web component is a function that renders a block of content within a webpage. [Learn more about Uniweb components](components.md)
 
 ## The Module SDK
 
