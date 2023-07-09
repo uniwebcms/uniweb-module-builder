@@ -56,3 +56,11 @@ If a module does not want to implement some standard components, it can import t
 ### Multilingualism
 
 ### Responsive design
+
+## Next steps
+
+- [Web components](docs/components.md)
+
+- [Web themes](docs/themes.md)
+
+- [Web fonts](docs/fonts.md)

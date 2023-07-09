@@ -2,104 +2,24 @@
 
 Standalone library for building federated modules for Uniweb CMS.
 
-`@uniwebcms/module-builder` is an NPM module that provides three functions to help build a collection of website widgets (federated module) and commit dist files to its own GitHub repository or another GitHub repository.
+`@uniwebcms/module-builder` is an NPM module that provides functions to help build federated modules representing collections of web components.
 
 ## Installation
 
-You can install `@uniwebcms/module-builder` using npm:
-
-```bash
-npm install @uniwebcms/module-builder
-```
-
-Or using yarn:
+Install `@uniwebcms/module-builder` using yarn:
 
 ```bash
 yarn add @uniwebcms/module-builder
 ```
 
-## Functions
+## Next steps
 
-#### `getConfigData(argv, __dirname)`
+- [Content and template editing with  Docufolio ](docs/docufolio.md)
 
-The `getConfigData` function takes `argv` and `__dirname` as parameters and analyzes the environment variables internally. It returns an object containing a complete webpack config object that can be used directly and some other data that can be use in case of writing a custom configuration.
+- [How to create a compliant website module](docs/docufolio.md#how-to-create-a-compliant-website-module)
 
-###### Parameters
+- [Web components](docs/components.md)
 
--   `argv` - Command line arguments passed to the script.
--   `__dirname` - The directory name of the current module.
+- [Web themes](docs/themes.md)
 
-###### Involved environment variables
-
--   `PUBLIC_URL` - Reflects `output.publicPath` under `prod` mode
--   `TUNNEL_URL` - rReflects `output.publicPath` under `tunnel` mode
--   `TARGET_MODULE` - The name of target widget collection
--   `DEV_SERVER_PORT` - Reflects `devServer.port` under `dev` mode
--   `REMOTE_TYPE` - Reflects the `name` of `ModuleFederationPlugin`, default is `WebsiteRemote`
-
-###### Return value
-
--   `config` - A complete Webpack config
--   `mode` - Webpack build mode
--   `publicPath` - The value of output.path
--   `exposes` - The value of `ModuleFederationPlugin` exposes
--   `tailwindCssLoader` - Loader rule for `css` files when enable `tailwindCss`
-
-Example
-
-```javascript
-// webpack.config.js
-const { getConfigData } = require('@uniwebcms/module-builder');
-
-module.exports = (_, argv) => {
-    const { config } = getConfigData(argv, __dirname);
-    console.log(configData);
-
-    return config;
-};
-```
-
-#### `release(__dirname)`
-
-The `release` function takes `__dirname` as a parameter and analyzes the environment variables internally. It commits the latest distribution files to the website widget project's own Github repository.
-
-###### Parameters
-
--   `__dirname` - The directory name of the current module.
-
-###### Involved environment variables
-
--   `TARGET_MODULE` - The name of target widget collection
-
-Example
-
-```javascript
-const { release } = require('@uniwebcms/module-builder');
-
-release(__dirname);
-```
-
-#### `deploy(__dirname)`
-
-The `deploy` function takes `__dirname` as a parameter and analyzes the environment variables internally. It commits the latest distribution files to a specified GitHub repository.
-
-###### Parameters
-
--   `__dirname` - The directory name of the current module.
-
-###### Involved environment variables
-
--   `TARGET_MODULE` - The name of target widget collection
--   `OUTPUT_COPY_DIR` - The path to the local target Github repository
-
-Example
-
-```javascript
-const { deploy } = require('@uniwebcms/module-builder');
-
-deploy(__dirname);
-```
-
-## License
-
-`@uniwebcms/module-builder` is licensed under the [MIT License](https://opensource.org/licenses/MIT).
+- [Web fonts](docs/fonts.md)
