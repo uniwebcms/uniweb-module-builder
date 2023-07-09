@@ -1,3 +1,52 @@
 # Uniweb Components
 
-A Uniweb Component is a React JS component whose props are 4 objets: `profile`, `block`, `page` , and `website`. The `profile` object represents the source data of a website. The `block` object contains the settings for the component, which is considered a **building block** within a webpage. The `page` object provides information about the current webpage being rendered as a sequence of buildign blocks. Finally, the `website` provides information about the entire website. Most components only need to work with the `profile` and `block` props. 
+A Uniweb Component is a React JS component whose props are 4 objets: `profile`, `block`, `page` , and `website`. The `profile` object represents the source data of a website. The `block` object contains the settings for the component, which represents a building block of a webpage. The `page` object provides information about the current webpage being rendered. Finally, the `website` object provides information about the website itself. 
+
+Most components need to work with only the `profile` and `block` objects. 
+
+## Theming a web component
+
+A component should try to use the dynamic [web theme](webtheme.md) provided by a webiste so that it honors the preferences of the website owner and the underlying website template.
+
+The rendering engine auto generates a **theme class name** for each page block, and passes it to the component in charge of rendering the block. The auto-generated theme class can be found at `props.block.theme`. 
+
+The component creator is expected to take the given class name and set it to the HTML root element of the component so that it cascades to all descendant elements. 
+
+Example:
+
+```Javascript
+export default function ({ block }) {
+    return (
+        <div className={`py-20 sm:py-32 ${theme}`}>
+            /* child elements */
+        </div>
+    );
+}
+```
+
+### Using predefined and custom variables in a web component
+
+The Uniweb rendering engine creates CSS variables for every predefined and custom variable defined in the web theme's palettes. That means that there will be up to 9 sets of variables, one for each possible palette. A component must have the **theme class name** in its root element in order to activate the correct set of variables.
+
+Both predefined and custom variables can be used as shown below.
+
+```javascript
+<div
+    className={`py-20 sm:py-32 text-[var(--primary)] bg-[var(--customVar)]`}
+></div>
+```
+
+The parser of [CSS variables in Tailwind](https://tailwindcss.com/docs/adding-custom-styles#using-arbitrary-values) also accepts variables without the `var()` syntax, so the example above can also be writter as:
+
+```javascript
+<div
+    className={`py-20 sm:py-32 text-[--primary] bg-[--customVar]`}
+></div>
+```
+
+It is worth learning more about [CSS variables in Tailwind](https://tailwindcss.com/docs/adding-custom-styles#using-arbitrary-values) to know what else is supported by their parser. For instance, setting a default value for a CSS variable is  supported.
+
+```javascript
+<div
+    className={`text-[var(--primary, #ff0000)]`}
+></div>
