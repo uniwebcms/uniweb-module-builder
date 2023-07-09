@@ -87,4 +87,4 @@ If a module does not want to implement some standard components, it can import t
 
 ## Next step
 
-- [Web themes](docs/themes.md)
+- [Web themes](themes.md)
