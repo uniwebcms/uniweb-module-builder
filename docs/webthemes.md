@@ -90,4 +90,4 @@ It can also be set as the web theme of a website.
 
 ## Next step
 
-- [Web fonts](docs/fonts.md)
+- [Web fonts](fonts.md)
