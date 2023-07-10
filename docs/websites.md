@@ -14,6 +14,8 @@ The concept of a **Profile website** is novel. It's a model that requires minima
 
 For many end users, the Profile websites are very appealing because they are self building, and it is easy to experiment with different templates with only a few clicks.
 
+Uniweb allows for the creation of custom [profile schemas](schemas.md) and the definition of [relationships](relationships.md) between profiles.
+
 [Web components](components.md) made for a Profile website must allocate extra effort to ensure that the  components have self-building intelligence so that they respond well to profiles with different amounts of information in them. 
 
 It is also important to provide pre-saved [web themes](webthemes.md) that add an extra layer of personalization to a template so that there are interesting variations in looks even when users choose the same template.
