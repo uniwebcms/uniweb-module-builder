@@ -1,8 +1,33 @@
 # Uniweb Components
 
-A Uniweb Component is a React JS component whose props are 4 objets: `profile`, `block`, `page` , and `website`. The `profile` object represents the source data of a website. The `block` object contains the settings for the component, which represents a building block of a webpage. The `page` object provides information about the current webpage being rendered. Finally, the `website` object provides information about the website itself. 
+A **page-level web component** in Uniweb is a React JS component whose props are 4 objets: `profile`, `block`, `page` , and `website`. The `profile` object represents the source data of a website. The `block` object contains the settings for the component, which represents a building block of a webpage. The `page` object provides information about the current webpage being rendered. Finally, the `website` object provides information about the website itself. 
 
 Most components need to work with only the `profile` and `block` objects. 
+
+Page-level components can be composed of other lower-level components that define their own expected properties.
+
+## Structure vs unstructure contents
+
+Uniweb can create different types of websites. The main difference between them is whether they are based on structured  or unstructured data. A [Profile website](websites.md#profile-websites) is based on structured data and take its contents from a main source profile and a number of secondary profiles. In contrast, a [Docufolio website](websites.md#docufolio-websites) is based on unstructured data and takes its contents from the free-form contents of the topics of a docufolio. A [docufolio](docufolio.md) is a data file that stores contents and properties. 
+
+A **page-level web component** must be designed to receive the contents to render from either the `profile` or `block` properties.
+
+The free-form contents of a docufolio, as their name suggests, don't have a well-defined structure. They are essentially web articles with media assets. However, users are encouraged to follow conventions when adding contents to topic sections so that a web component can infer a meaningful structure from them. For example, we can identify and understand what is meant by a title, lead text, body text, image, caption, quoted text and more elements. Moreover, the relative order and dividers in a docufolio section provide additional information regarding discrete items within the content.
+
+The free-form content in each docufilio section are parsed according to basic rules, and the results are stored in `block.main` and `block.items`. In particular, `block.main` represents the `primary contents` of a page, and `block.items` is an array of `secondary contents`.
+
+Each primary and secondary contents is represented by an object with the following properties:
+
+- header
+    - banner
+    - title
+    - subtitle
+- body
+    - images
+    - links
+    - paragraphs
+
+
 
 ## Theming a web component
 
