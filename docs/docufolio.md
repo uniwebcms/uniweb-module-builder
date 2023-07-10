@@ -28,4 +28,4 @@ A module can use blocks from the Express library within its own componens. The m
 
 ## Next step
 
-- [Web components](components.md)
+- [Types of websites](websites.md)

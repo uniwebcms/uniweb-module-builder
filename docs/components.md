@@ -60,15 +60,15 @@ The standardization of building blocks goes beyond their name by also providing 
 
 The following is the complete list of standard component categories together with the links to the guidelines for them.
 
-- [Article](docs/category/Article.md)
-- [Card](docs/category/Card.md)
-- [Header](docs/category/Header.md)
-- [List](docs/category/List.md)
-- [Quote](docs/category/Quote.md)
-- [Map](docs/category/Map.md)
-- [Spotlight](docs/category/Spotlight.md)
-- [PageHeader](docs/category/PageHeader.md)
-- [PageFooter](docs/category/PageFooter.md)
+- [Article](category/Article.md)
+- [Card](category/Card.md)
+- [Header](category/Header.md)
+- [List](category/List.md)
+- [Quote](category/Quote.md)
+- [Map](category/Map.md)
+- [Spotlight](category/Spotlight.md)
+- [PageHeader](category/PageHeader.md)
+- [PageFooter](category/PageFooter.md)
 
 > **Note** <br>
 > While the category names above are in singular form, their implementation often requires rendering one or more instances of that category. For example, a section of category `Card` might render several cards.
