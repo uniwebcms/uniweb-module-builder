@@ -27,7 +27,7 @@ function validUrl(url) {
     return href.endsWith('/') ? href.slice(0, -1) : href;
 }
 
-function getWebpackPlugins(federateModuleName, exposes, publicUrl) {
+function getWebpackPlugins(federateModuleName, exposes, publicUrl, uuid) {
     return [
         new ModuleFederationPlugin({
             name: federateModuleName,
@@ -73,7 +73,11 @@ function getWebpackPlugins(federateModuleName, exposes, publicUrl) {
                 if (stats.compilation.errors.length === 0) {
                     // console.log('Webpack build completed successfully!');
                     const separator = '-'.repeat(40); // Dashed line separator
-                    const message = chalk.green.bold('PUBLIC URL: ') + chalk.white(publicUrl);
+
+                    const cleanUrl = publicUrl
+                        .replace(new RegExp(`/${uuid}/|/+$`, 'g'), '/')
+                        .replace(/\/$/, '');
+                    const message = chalk.green.bold('PUBLIC URL: ') + chalk.white(cleanUrl);
 
                     console.log('\n' + separator);
                     console.log(message);
@@ -383,7 +387,7 @@ function buildWebpackConfig(env, argv, rootDir) {
                 },
             ],
         },
-        plugins: getWebpackPlugins(federateModuleName, exposes, publicPath),
+        plugins: getWebpackPlugins(federateModuleName, exposes, publicPath, uuid),
         watchOptions: {
             ignored: ['**/node_modules'],
         },

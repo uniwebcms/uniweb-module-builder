@@ -18,7 +18,7 @@ function getOptions() {
             demandOption: false,
         })
         .option('cache', {
-            default: 30,
+            default: 1,
             describe: 'Cache-control max-age header in seconds',
             type: 'number',
             demandOption: false,
