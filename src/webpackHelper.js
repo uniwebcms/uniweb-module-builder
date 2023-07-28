@@ -464,7 +464,7 @@ module.exports = function (argv, rootDir) {
             return buildWebpackConfig(process.env, argv, rootDir);
         } else if (modules.length === 1) {
             console.log('Execute single build mode...\n');
-            process.env.TARGET_MODULE = modules[0];
+            process.env.TARGET_MODULE = modules[0].trim();
 
             return buildWebpackConfig(process.env, argv, rootDir);
         } else {
