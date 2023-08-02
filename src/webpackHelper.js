@@ -260,7 +260,16 @@ function buildWebpackConfig(env, argv, rootDir) {
         const newVersionContent = [
             {
                 version: uuid,
-                date: new Date().toString(),
+                date: new Intl.DateTimeFormat('en-CA', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    second: 'numeric',
+                    timeZone: 'America/Toronto',
+                    timeZoneName: 'long',
+                }).format(new Date()),
             },
         ];
 
