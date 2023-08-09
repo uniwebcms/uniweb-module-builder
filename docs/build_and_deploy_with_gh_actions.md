@@ -24,7 +24,19 @@ For example, if your GitHub account name is `cvworks`, the repository name is `u
 then the URL `https://cvworks.github.io/uniweb-modules/SimpleCollection` is the value you use to [set the Web Styler of a 
 Docufolio in Uniweb](https://github.com/uniwebcms/uniweb-module-builder/blob/main/docs/dev_with_tunnel.md#connecting-the-module-to-a-website).
 
-## Optional: manually trigger the build and deploy workflow
+In addition, if the GitHub Actions are set to build a tutorial website for all the modules in the repo, the site will be deployed at:
+
+```text
+https://[gh-account-name].github.io/[repo-name]/tutorial
+```
+
+The default GitHub Actions normally also build an `index.html` page at the root level:
+
+```text
+https://[gh-account-name].github.io/[repo-name]
+```
+
+## Optional: triggering the build and deploy workflow manually
 
 1. Go to the `Actions` tab of the repository
 
