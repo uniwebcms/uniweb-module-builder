@@ -27,8 +27,17 @@ function validUrl(url) {
     return href.endsWith('/') ? href.slice(0, -1) : href;
 }
 
-function getWebpackPlugins(federateModuleName, exposes, publicUrl, uuid) {
-    return [
+function getWebpackPlugins(federateModuleName, exposes, publicUrl, uuid, mode) {
+    const compressionPlugin = new CompressionPlugin({
+        filename: '[path][base].gzip',
+        algorithm: 'gzip',
+        test: /\.(js|css|html|svg)$/,
+        threshold: 10240,
+        minRatio: 0.8,
+        deleteOriginalAssets: false,
+    });
+
+    let plugins = [
         new ModuleFederationPlugin({
             name: federateModuleName,
             filename: 'remoteEntry.js',
@@ -49,15 +58,6 @@ function getWebpackPlugins(federateModuleName, exposes, publicUrl, uuid) {
                     requiredVersion: '^0.0.4',
                 },
             },
-        }),
-        // Enable gzip compression
-        new CompressionPlugin({
-            filename: '[path][base].gzip',
-            algorithm: 'gzip',
-            test: /\.(js|css|html|svg)$/,
-            threshold: 10240,
-            minRatio: 0.8,
-            deleteOriginalAssets: false,
         }),
         // // Enable Brotli compression
         // new CompressionPlugin({
@@ -88,6 +88,12 @@ function getWebpackPlugins(federateModuleName, exposes, publicUrl, uuid) {
             });
         },
     ];
+
+    if (mode === 'development') {
+        plugins.push(compressionPlugin);
+    }
+
+    return plugins;
 }
 
 function buildWebpackConfig(env, argv, rootDir) {
@@ -396,7 +402,7 @@ function buildWebpackConfig(env, argv, rootDir) {
                 },
             ],
         },
-        plugins: getWebpackPlugins(federateModuleName, exposes, publicPath, uuid),
+        plugins: getWebpackPlugins(federateModuleName, exposes, publicPath, uuid, mode),
         watchOptions: {
             ignored: ['**/node_modules'],
         },
