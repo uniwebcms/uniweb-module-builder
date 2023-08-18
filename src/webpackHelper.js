@@ -433,7 +433,6 @@ module.exports = function (argv, rootDir) {
                 .filter(
                     (dirent) =>
                         dirent.isDirectory() &&
-                        dirent.name !== 'utils' &&
                         !dirent.name.startsWith('_') &&
                         !dirent.name.startsWith('.')
                 )
@@ -464,7 +463,6 @@ module.exports = function (argv, rootDir) {
                 .filter(
                     (dirent) =>
                         dirent.isDirectory() &&
-                        dirent.name !== 'utils' &&
                         !dirent.name.startsWith('_') &&
                         !dirent.name.startsWith('.')
                 )
