@@ -3,7 +3,6 @@ const { v4: uuidv4 } = require('uuid');
 const fs = require('fs-extra');
 const { URL } = require('url');
 const postpresetenv = require('postcss-preset-env');
-const tailwindcss = require('tailwindcss');
 const autoprefixer = require('autoprefixer');
 const webpack = require('webpack');
 const chalk = require('chalk');
@@ -27,7 +26,22 @@ function validUrl(url) {
     return href.endsWith('/') ? href.slice(0, -1) : href;
 }
 
+function findTailwindConfigFiles(rootDir) {
+    const configFiles = fs.readdirSync(rootDir);
+
+    const tailwindConfigPaths = configFiles
+        .filter((file) => /^tailwind(?:\.(.+))?\.config\.js$/.test(file))
+        .map((file) => {
+            const match = file.match(/^tailwind(?:\.(.+))?\.config\.js$/);
+            return match ? { path: path.resolve(rootDir, file), kind: match[1] || '' } : null;
+        })
+        .filter(Boolean);
+
+    return tailwindConfigPaths;
+}
+
 function getWebpackPlugins(federateModuleName, exposes, publicUrl, uuid, mode) {
+    console.log('publicUrl', publicUrl);
     const compressionPlugin = new CompressionPlugin({
         filename: '[path][base].gzip',
         algorithm: 'gzip',
@@ -96,6 +110,135 @@ function getWebpackPlugins(federateModuleName, exposes, publicUrl, uuid, mode) {
     return plugins;
 }
 
+function getTailwindCssLoader(tailwindPath) {
+    return {
+        loader: 'postcss-loader',
+        options: {
+            postcssOptions: {
+                plugins: [
+                    postpresetenv,
+                    require('@tailwindcss/nesting'),
+                    autoprefixer,
+                    require('tailwindcss')(require(tailwindPath)),
+                ],
+            },
+        },
+    };
+}
+
+function constructWebpackConfig(
+    mode,
+    rootDir,
+    outputPath,
+    publicPath,
+    DEV_SERVER_PORT,
+    tailwindCssLoader,
+    plugins
+) {
+    return {
+        mode,
+        entry: path.resolve(rootDir, 'entry.js'),
+        resolve: {
+            extensions: ['.jsx', '.js', '.json'],
+        },
+        output: {
+            filename: 'main.[contenthash].js',
+            // filename: 'bundle.js',
+            path: outputPath,
+            clean: true,
+            publicPath,
+        },
+        devServer: {
+            port: DEV_SERVER_PORT,
+        },
+        module: {
+            rules: [
+                {
+                    test: /\.js$/,
+                    exclude: /(node_modules|bower_components)/,
+                    use: {
+                        loader: 'babel-loader',
+                        options: {
+                            presets: ['@babel/preset-env', '@babel/preset-react'],
+                        },
+                    },
+                },
+                {
+                    test: /\.(css)$/i,
+                    use: [
+                        'style-loader',
+                        {
+                            loader: 'css-loader',
+                            options: {
+                                // Run `postcss-loader` on each CSS `@import`, do not forget that `sass-loader` compile non CSS `@import`'s into a single file
+                                // If you need run `sass-loader` and `postcss-loader` on each CSS `@import` please set it to `2`
+                                importLoaders: 1,
+                                // Automatically enable css modules for files satisfying `/\.module\.\w+$/i` RegExp.
+                                modules: { auto: true },
+                            },
+                        },
+                        tailwindCssLoader,
+                    ].filter(Boolean),
+                },
+                {
+                    test: /\.((sa|sc)ss)$/i,
+                    use: [
+                        'style-loader',
+                        {
+                            loader: 'css-loader',
+                            options: {
+                                // Run `postcss-loader` on each CSS `@import`, do not forget that `sass-loader` compile non CSS `@import`'s into a single file
+                                // If you need run `sass-loader` and `postcss-loader` on each CSS `@import` please set it to `2`
+                                importLoaders: 1,
+                                // Automatically enable css modules for files satisfying `/\.module\.\w+$/i` RegExp.
+                                modules: { auto: true },
+                            },
+                        },
+                        {
+                            loader: 'sass-loader',
+                            options: {
+                                // Prefer `dart-sass`
+                                // eslint-disable-next-line global-require
+                                implementation: require('sass'),
+                            },
+                        },
+                    ],
+                },
+                {
+                    test: /\.svg$/,
+                    use: [
+                        {
+                            loader: '@svgr/webpack',
+                            options: {
+                                svgoConfig: {
+                                    plugins: [
+                                        {
+                                            removeViewBox: false,
+                                        },
+                                    ],
+                                },
+                            },
+                        },
+                    ],
+                },
+                {
+                    test: /\.(png|jpe?g|gif|webp)$/i,
+                    use: [
+                        {
+                            loader: 'file-loader',
+                        },
+                    ],
+                },
+            ],
+        },
+        plugins,
+        watchOptions: {
+            ignored: ['**/node_modules'],
+        },
+        stats: 'minimal', // https://webpack.js.org/configuration/stats/
+    };
+}
+
 function buildWebpackConfig(env, argv, rootDir) {
     let uuid = uuidv4();
 
@@ -129,7 +272,7 @@ function buildWebpackConfig(env, argv, rootDir) {
     let prodPublicPath;
     let devPublicPath;
     let dest;
-    let tailwindCssLoader = {};
+    let tailwindCssLoader;
 
     if (!mode) console.log('Build mode not specified in script!');
 
@@ -217,14 +360,6 @@ function buildWebpackConfig(env, argv, rootDir) {
             break;
     }
 
-    console.log(
-        'Start building process for module:',
-        module,
-        'with public path:',
-        mode === 'development' ? devPublicPath : prodPublicPath,
-        `under ${mode} mode`
-    );
-
     const exposes = {};
 
     // get module that need build and deploy
@@ -234,180 +369,127 @@ function buildWebpackConfig(env, argv, rootDir) {
         throw new Error(`Module: ${module} not exist!`);
     }
 
-    if (moduleExists) {
-        // write dynamic entry.js
-        const entryFile = path.resolve(rootDir, `entry.js`);
-        const entryContent = `import("../src/${module}");\n`;
+    // write dynamic entry.js
+    const entryFile = path.resolve(rootDir, `entry.js`);
+    const entryContent = `import("../src/${module}");\n`;
+    fs.writeFileSync(entryFile, entryContent.trim(), { flag: 'w' });
 
-        fs.writeFileSync(entryFile, entryContent.trim(), { flag: 'w' });
+    // set exposes module
+    exposes[`./widgets`] = `../src/${module}`;
 
-        // set exposes module
-        exposes[`./widgets`] = `../src/${module}`;
+    // const newVersionContent = [
+    //     {
+    //         version: uuid,
+    //         date: new Intl.DateTimeFormat('en-CA', {
+    //             year: 'numeric',
+    //             month: 'long',
+    //             day: 'numeric',
+    //             hour: 'numeric',
+    //             minute: 'numeric',
+    //             second: 'numeric',
+    //             timeZone: 'America/Toronto',
+    //             timeZoneName: 'long',
+    //         }).format(new Date()),
+    //     },
+    // ];
 
-        // add tailwindcss loader if needed
-        const tailwindPath = path.resolve(rootDir, '..', 'src', module, 'tailwind.config.js');
-
-        if (fs.existsSync(tailwindPath)) {
-            tailwindCssLoader = {
-                loader: 'postcss-loader',
-                options: {
-                    postcssOptions: {
-                        plugins: [
-                            postpresetenv,
-                            require('@tailwindcss/nesting'),
-                            tailwindcss(tailwindPath),
-                            autoprefixer,
-                        ],
-                    },
-                },
+    // setup manifest.json
+    if (mode === 'development') {
+        if (isLocal) {
+            // update moduleRegistry.json
+            let registryContent = {
+                [federateModuleName]: devPublicPath.replace(/\/(?!.*\/)/g, ''),
             };
-        }
 
-        const newVersionContent = [
-            {
-                version: uuid,
-                date: new Intl.DateTimeFormat('en-CA', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: 'numeric',
-                    minute: 'numeric',
-                    second: 'numeric',
-                    timeZone: 'America/Toronto',
-                    timeZoneName: 'long',
-                }).format(new Date()),
-            },
-        ];
-
-        if (mode === 'development') {
-            if (isLocal) {
-                // update moduleRegistry.json
-                let registryContent = {
-                    [federateModuleName]: `${devPublicPath}remoteEntry.js`,
-                };
-
-                fs.outputJsonSync(
-                    path.resolve(rootDir, '../build_dev', 'remoteRegistry.json'),
-                    registryContent
-                );
-            } else {
-                // update version.json
-                fs.outputJsonSync(path.resolve(dest, 'version.json'), newVersionContent);
-                // update latest_version.txt
-                fs.outputFileSync(path.resolve(dest, 'latest_version.txt'), uuid);
-            }
+            fs.outputJsonSync(
+                path.resolve(rootDir, '../build_dev', 'remoteRegistry.json'),
+                registryContent
+            );
         } else {
             // update version.json
-            fs.outputJsonSync(path.resolve(dest, 'version.json'), newVersionContent);
+            // fs.outputJsonSync(path.resolve(dest, 'version.json'), newVersionContent);
             // update latest_version.txt
             fs.outputFileSync(path.resolve(dest, 'latest_version.txt'), uuid);
         }
+    } else {
+        // update version.json
+        // fs.outputJsonSync(path.resolve(dest, 'version.json'), newVersionContent);
+        // update latest_version.txt
+        fs.outputFileSync(path.resolve(dest, 'latest_version.txt'), uuid);
     }
 
-    const outputPath = path.resolve(dest, uuid);
-    const publicPath = mode === 'development' ? devPublicPath : prodPublicPath;
+    let config;
 
-    const config = {
-        mode,
-        entry: path.resolve(rootDir, 'entry.js'),
-        resolve: {
-            extensions: ['.jsx', '.js', '.json'],
-        },
-        output: {
-            filename: 'main.[contenthash].js',
-            path: outputPath,
-            clean: true,
+    // add tailwindcss loader if needed and handle multiple tailwindcss configs case
+    const tailwindConfigPath = findTailwindConfigFiles(path.resolve(rootDir, '..', 'src', module));
+
+    let outputPath, publicPath;
+
+    if (tailwindConfigPath.length > 1) {
+        config = tailwindConfigPath.map(({ path: twConfigPath, kind }) => {
+            if (kind) {
+                const devPublicPathKey =
+                    devPublicPath?.replace(/\/(?!.*\/)/g, `_${kind}/`) || undefined;
+                const prodPublicPathKey =
+                    prodPublicPath?.replace(/\/(?!.*\/)/g, `_${kind}/`) || undefined;
+
+                outputPath = path.resolve(dest, `${uuid}_${kind}`);
+                publicPath = mode === 'development' ? devPublicPathKey : prodPublicPathKey;
+            } else {
+                outputPath = path.resolve(dest, uuid);
+                publicPath = mode === 'development' ? devPublicPath : prodPublicPath;
+            }
+
+            const plugins = getWebpackPlugins(federateModuleName, exposes, publicPath, uuid, mode);
+
+            tailwindCssLoader = getTailwindCssLoader(twConfigPath);
+
+            console.log(
+                'Start building process for module:',
+                module,
+                'with public path:',
+                publicPath,
+                `under ${mode} mode`,
+                kind ? `with variant: ${kind}` : ''
+            );
+
+            return constructWebpackConfig(
+                mode,
+                rootDir,
+                outputPath,
+                publicPath,
+                DEV_SERVER_PORT,
+                tailwindCssLoader,
+                plugins
+            );
+        });
+    } else {
+        outputPath = path.resolve(dest, uuid);
+        publicPath = mode === 'development' ? devPublicPath : prodPublicPath;
+        const plugins = getWebpackPlugins(federateModuleName, exposes, publicPath, uuid, mode);
+
+        if (tailwindConfigPath.length === 1) {
+            tailwindCssLoader = getTailwindCssLoader(tailwindConfigPath[0].path);
+        }
+
+        console.log(
+            'Start building process for module:',
+            module,
+            'with public path:',
             publicPath,
-        },
-        devServer: {
-            port: DEV_SERVER_PORT,
-        },
-        module: {
-            rules: [
-                {
-                    test: /\.js$/,
-                    exclude: /(node_modules|bower_components)/,
-                    use: {
-                        loader: 'babel-loader',
-                        options: {
-                            presets: ['@babel/preset-env', '@babel/preset-react'],
-                        },
-                    },
-                },
-                {
-                    test: /\.(css)$/i,
-                    use: [
-                        'style-loader',
-                        {
-                            loader: 'css-loader',
-                            options: {
-                                // Run `postcss-loader` on each CSS `@import`, do not forget that `sass-loader` compile non CSS `@import`'s into a single file
-                                // If you need run `sass-loader` and `postcss-loader` on each CSS `@import` please set it to `2`
-                                importLoaders: 1,
-                                // Automatically enable css modules for files satisfying `/\.module\.\w+$/i` RegExp.
-                                modules: { auto: true },
-                            },
-                        },
-                        tailwindCssLoader,
-                    ],
-                },
-                {
-                    test: /\.((sa|sc)ss)$/i,
-                    use: [
-                        'style-loader',
-                        {
-                            loader: 'css-loader',
-                            options: {
-                                // Run `postcss-loader` on each CSS `@import`, do not forget that `sass-loader` compile non CSS `@import`'s into a single file
-                                // If you need run `sass-loader` and `postcss-loader` on each CSS `@import` please set it to `2`
-                                importLoaders: 1,
-                                // Automatically enable css modules for files satisfying `/\.module\.\w+$/i` RegExp.
-                                modules: { auto: true },
-                            },
-                        },
-                        {
-                            loader: 'sass-loader',
-                            options: {
-                                // Prefer `dart-sass`
-                                // eslint-disable-next-line global-require
-                                implementation: require('sass'),
-                            },
-                        },
-                    ],
-                },
-                {
-                    test: /\.svg$/,
-                    use: [
-                        {
-                            loader: '@svgr/webpack',
-                            options: {
-                                svgoConfig: {
-                                    plugins: [
-                                        {
-                                            removeViewBox: false,
-                                        },
-                                    ],
-                                },
-                            },
-                        },
-                    ],
-                },
-                {
-                    test: /\.(png|jpe?g|gif|webp)$/i,
-                    use: [
-                        {
-                            loader: 'file-loader',
-                        },
-                    ],
-                },
-            ],
-        },
-        plugins: getWebpackPlugins(federateModuleName, exposes, publicPath, uuid, mode),
-        watchOptions: {
-            ignored: ['**/node_modules'],
-        },
-        stats: 'minimal', // https://webpack.js.org/configuration/stats/
-    };
+            `under ${mode} mode`
+        );
+
+        config = constructWebpackConfig(
+            mode,
+            rootDir,
+            outputPath,
+            publicPath,
+            DEV_SERVER_PORT,
+            tailwindCssLoader,
+            plugins
+        );
+    }
 
     return {
         config,
@@ -445,7 +527,9 @@ module.exports = function (argv, rootDir) {
                 process.env.TARGET_MODULE = module.trim();
 
                 const { config } = buildWebpackConfig(process.env, argv, rootDir);
-                configs.push(config);
+
+                if (Array.isArray(config)) configs.push(...config);
+                else configs.push(config);
             }
 
             return { config: configs };
@@ -488,7 +572,9 @@ module.exports = function (argv, rootDir) {
                 process.env.TARGET_MODULE = module.trim();
 
                 const { config } = buildWebpackConfig(process.env, argv, rootDir);
-                configs.push(config);
+
+                if (Array.isArray(config)) configs.push(...config);
+                else configs.push(config);
             }
 
             return { config: configs };
