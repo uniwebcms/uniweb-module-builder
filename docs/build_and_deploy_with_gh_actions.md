@@ -45,3 +45,106 @@ https://[gh-account-name].github.io/[repo-name]
 3. Open the **Run workflow** menu on the main panel and click on the green button labelled **Run workflow**
 
 <kbd> <img src="assets/manual_run_gh_workflow.png" /> </kbd>
+
+## Build and Deploy Workflow
+The module repository contain this GitHub Actions workflow. It is designed to automate the build and deployment process of a module collection. The workflow includes two main jobs: prepare, build, and two conditional jobs deploy and release. The workflow is triggered on pushes to the main branch and can also be manually triggered from the Actions tab.
+
+#### Workflow Structure
+```yaml
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: 'pages'
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    ...
+
+  build:
+    ...
+
+  deploy:
+    ...
+
+  release:
+    ...
+
+```
+
+### Job Descriptions
+
+#### 1. `prepare` Job
+
+The `prepare` job sets up the necessary environment and extracts information required by downstream jobs.
+
+- **Triggers:** Manual or on push to the main branch.
+- **Runs on:** Ubuntu Latest.
+
+  ##### Steps:
+
+  - **Checkout Repository:** Uses `actions/checkout` to fetch the repository.
+  - **Load Environment Variables:** Uses `falti/dotenv-action` to load environment variables from a `.env` file.
+  - **Set Outputs:** Exports variables such as `skip_tutorial`, `release_branch`, and `public_url` for downstream jobs.
+
+#### 2. `build` Job
+
+The `build` job compiles the project, installs dependencies, and optionally builds tutorials.
+
+- **Triggers:** After the `prepare` job.
+- **Runs on:** Ubuntu Latest.
+
+  ##### Steps:
+
+  - **Checkout Repository:** Uses `actions/checkout` to fetch the repository.
+  - **Set GitHub Pages URL to Env:** Sets the GitHub Pages URL as an environment variable.
+  - **Install Dependencies:** Uses `yarn` to install project dependencies.
+  - **Build Module:** Uses `yarn` to build the project module.
+  - **Build Tutorial (Optional):** Conditionally builds the tutorial based on the `skip_tutorial` variable.
+  - **Generate Index Page:** Runs a script to generate the `index.html` for the GitHub Pages site.
+  - **Upload Artifact for Deploy:** Uploads the `dist` folder as an artifact for downstream jobs.
+
+#### 3. `deploy` Job
+
+The `deploy` job deploys the `dist` folder to GitHub Pages for the current branch.
+
+- **Triggers:** After the `prepare` and `build` jobs, only if `release_branch` is not set.
+- **Runs on:** Ubuntu Latest.
+
+  ##### Steps:
+
+  - **Checkout Repository:** Uses `actions/checkout` to fetch the repository.
+  - **Download Artifact:** Downloads the `dist` folder artifact from the `build` job.
+  - **Setup Pages:** Configures GitHub Pages environment.
+  - **Upload Artifact for GitHub Pages:** Uploads the `dist` folder as a GitHub Pages artifact.
+  - **Deploy to GitHub Pages:** Uses `actions/deploy-pages` to deploy the `dist` folder to GitHub Pages.
+  - **Clean Inter-job Artifacts:** Deletes the `dist` folder artifact uploaded by the `build` job.
+
+#### 4. `release` Job
+
+The `release` job releases the artifact to the specified release branch, hosted by GitHub Pages.
+
+- **Triggers:** After the `prepare` and `build` jobs, only if `release_branch` is set.
+- **Runs on:** Ubuntu Latest.
+
+  ##### Steps:
+
+  - **Checkout Repository:** Uses `actions/checkout` to fetch the repository.
+  - **Download Artifact:** Downloads the `dist` folder artifact from the `build` job.
+  - **Deploy to Release Branch:** Uses `peaceiris/actions-gh-pages` to deploy the `dist` folder to the specified release branch.
+  - **Clean Inter-job Artifacts:** Deletes the `dist` folder artifact uploaded by the `build` job.
+
+### Conclusion
+
+This workflow provides a streamlined process for building and deploying projects, including optional tutorial builds and conditional releases. Users can trigger the workflow manually or automatically on pushes to the main branch. The deployment to GitHub Pages is handled seamlessly for both regular deployments and releases.
