@@ -154,7 +154,8 @@ function constructWebpackConfig(
         module: {
             rules: [
                 {
-                    test: /\.js$/,
+                    // test: /\.js$/,
+                    test: /\.(jsx|js)$/,
                     exclude: /(node_modules|bower_components)/,
                     use: {
                         loader: 'babel-loader',
@@ -226,6 +227,19 @@ function constructWebpackConfig(
                     use: [
                         {
                             loader: 'file-loader',
+                        },
+                    ],
+                },
+                {
+                    test: /\.mdx?$/,
+                    use: [
+                        {
+                            loader: 'babel-loader',
+                            options: {},
+                        },
+                        {
+                            loader: '@mdx-js/loader',
+                            options: {},
                         },
                     ],
                 },
