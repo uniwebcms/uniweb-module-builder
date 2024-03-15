@@ -408,33 +408,30 @@ function buildWebpackConfig(env, argv, rootDir) {
     // ];
 
     // setup manifest.json
-    if (mode === 'development') {
-        if (isLocal) {
-            // update moduleRegistry.json
-            // let registryContent = {
-            //     [federateModuleName]: devPublicPath.replace(/\/(?!.*\/)/g, ''),
-            // };
+    fs.outputFileSync(path.resolve(dest, 'latest_version.txt'), uuid);
 
-            // fs.outputJsonSync(
-            //     path.resolve(rootDir, '../build_dev', 'remoteRegistry.json'),
-            //     registryContent
-            // ); module
-            fs.outputFileSync(
-                path.resolve(rootDir, '../build_dev', module, 'latest_version.txt'),
-                uuid
-            );
-        } else {
-            // update version.json
-            // fs.outputJsonSync(path.resolve(dest, 'version.json'), newVersionContent);
-            // update latest_version.txt
-            fs.outputFileSync(path.resolve(dest, 'latest_version.txt'), uuid);
-        }
-    } else {
-        // update version.json
-        // fs.outputJsonSync(path.resolve(dest, 'version.json'), newVersionContent);
-        // update latest_version.txt
-        fs.outputFileSync(path.resolve(dest, 'latest_version.txt'), uuid);
-    }
+    // if (mode === 'development') {
+    //     if (isLocal) {
+    //         //  update moduleRegistry.json
+    //         let registryContent = {
+    //             [federateModuleName]: devPublicPath.replace(/\/(?!.*\/)/g, ''),
+    //         };
+    //         fs.outputJsonSync(
+    //             path.resolve(rootDir, '../build_dev', 'remoteRegistry.json'),
+    //             registryContent
+    //         );
+    //     } else {
+    //         // update version.json
+    //         // fs.outputJsonSync(path.resolve(dest, 'version.json'), newVersionContent);
+    //         // update latest_version.txt
+    //         fs.outputFileSync(path.resolve(dest, 'latest_version.txt'), uuid);
+    //     }
+    // } else {
+    //     // update version.json
+    //     // fs.outputJsonSync(path.resolve(dest, 'version.json'), newVersionContent);
+    //     // update latest_version.txt
+    //     fs.outputFileSync(path.resolve(dest, 'latest_version.txt'), uuid);
+    // }
 
     let config;
 
