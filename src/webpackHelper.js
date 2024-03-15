@@ -411,13 +411,17 @@ function buildWebpackConfig(env, argv, rootDir) {
     if (mode === 'development') {
         if (isLocal) {
             // update moduleRegistry.json
-            let registryContent = {
-                [federateModuleName]: devPublicPath.replace(/\/(?!.*\/)/g, ''),
-            };
+            // let registryContent = {
+            //     [federateModuleName]: devPublicPath.replace(/\/(?!.*\/)/g, ''),
+            // };
 
-            fs.outputJsonSync(
-                path.resolve(rootDir, '../build_dev', 'remoteRegistry.json'),
-                registryContent
+            // fs.outputJsonSync(
+            //     path.resolve(rootDir, '../build_dev', 'remoteRegistry.json'),
+            //     registryContent
+            // ); module
+            fs.outputFileSync(
+                path.resolve(rootDir, '../build_dev', module, 'latest_version.txt'),
+                uuid
             );
         } else {
             // update version.json
