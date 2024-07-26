@@ -7,6 +7,7 @@ const autoprefixer = require('autoprefixer');
 const webpack = require('webpack');
 const chalk = require('chalk');
 const CompressionPlugin = require('compression-webpack-plugin');
+// const AssetsPlugin = require('assets-webpack-plugin');
 
 const { ModuleFederationPlugin } = webpack.container;
 
@@ -40,8 +41,7 @@ function findTailwindConfigFiles(rootDir) {
     return tailwindConfigPaths;
 }
 
-function getWebpackPlugins(federateModuleName, exposes, publicUrl, uuid, mode) {
-    console.log('publicUrl', publicUrl);
+function getWebpackPlugins(federateModuleName, exposes, publicUrl, uuid, mode, outputPath) {
     const compressionPlugin = new CompressionPlugin({
         filename: '[path][base].gzip',
         algorithm: 'gzip',
@@ -51,7 +51,7 @@ function getWebpackPlugins(federateModuleName, exposes, publicUrl, uuid, mode) {
         deleteOriginalAssets: false,
     });
 
-    let plugins = [
+    const plugins = [
         new ModuleFederationPlugin({
             name: federateModuleName,
             filename: 'remoteEntry.js',
@@ -66,26 +66,17 @@ function getWebpackPlugins(federateModuleName, exposes, publicUrl, uuid, mode) {
                     singleton: true,
                     requiredVersion: '^6.4.2',
                 },
-                twind: { singleton: true, requiredVersion: '^0.16.17' },
-                '@twind/react': {
-                    singleton: true,
-                    requiredVersion: '^0.0.4',
-                },
             },
         }),
-        // // Enable Brotli compression
-        // new CompressionPlugin({
-        //     filename: '[path][base].br',
-        //     algorithm: 'brotliCompress',
-        //     test: /\.(js|css|html|svg)$/,
-        //     threshold: 10240,
-        //     minRatio: 0.8,
-        //     deleteOriginalAssets: false,
+        // new AssetsPlugin({
+        //     filename: 'manifest.json',
+        //     prettyPrint: true,
+        //     path: outputPath,
+        //     includeDynamicImportedAssets: true,
         // }),
         function () {
             this.hooks.done.tap('BuildCompletePlugin', (stats) => {
                 if (stats.compilation.errors.length === 0) {
-                    // console.log('Webpack build completed successfully!');
                     const separator = '-'.repeat(40); // Dashed line separator
 
                     const cleanUrl = publicUrl
@@ -143,7 +134,6 @@ function constructWebpackConfig(
         },
         output: {
             filename: 'main.[contenthash].js',
-            // filename: 'bundle.js',
             path: outputPath,
             clean: true,
             publicPath,
@@ -243,11 +233,15 @@ function constructWebpackConfig(
                         },
                     ],
                 },
+                {
+                    test: /\.(txt|csl)$/i,
+                    use: 'raw-loader',
+                },
             ],
         },
         plugins,
         watchOptions: {
-            ignored: ['**/node_modules'],
+            ignored: ['**/node_modules', '**/dist', '**/build_dev'],
         },
         stats: 'minimal', // https://webpack.js.org/configuration/stats/
     };
@@ -391,47 +385,8 @@ function buildWebpackConfig(env, argv, rootDir) {
     // set exposes module
     exposes[`./widgets`] = `../src/${module}`;
 
-    // const newVersionContent = [
-    //     {
-    //         version: uuid,
-    //         date: new Intl.DateTimeFormat('en-CA', {
-    //             year: 'numeric',
-    //             month: 'long',
-    //             day: 'numeric',
-    //             hour: 'numeric',
-    //             minute: 'numeric',
-    //             second: 'numeric',
-    //             timeZone: 'America/Toronto',
-    //             timeZoneName: 'long',
-    //         }).format(new Date()),
-    //     },
-    // ];
-
-    // setup manifest.json
+    // setup latest_version.txt
     fs.outputFileSync(path.resolve(dest, 'latest_version.txt'), uuid);
-
-    // if (mode === 'development') {
-    //     if (isLocal) {
-    //         //  update moduleRegistry.json
-    //         let registryContent = {
-    //             [federateModuleName]: devPublicPath.replace(/\/(?!.*\/)/g, ''),
-    //         };
-    //         fs.outputJsonSync(
-    //             path.resolve(rootDir, '../build_dev', 'remoteRegistry.json'),
-    //             registryContent
-    //         );
-    //     } else {
-    //         // update version.json
-    //         // fs.outputJsonSync(path.resolve(dest, 'version.json'), newVersionContent);
-    //         // update latest_version.txt
-    //         fs.outputFileSync(path.resolve(dest, 'latest_version.txt'), uuid);
-    //     }
-    // } else {
-    //     // update version.json
-    //     // fs.outputJsonSync(path.resolve(dest, 'version.json'), newVersionContent);
-    //     // update latest_version.txt
-    //     fs.outputFileSync(path.resolve(dest, 'latest_version.txt'), uuid);
-    // }
 
     let config;
 
@@ -455,7 +410,14 @@ function buildWebpackConfig(env, argv, rootDir) {
                 publicPath = mode === 'development' ? devPublicPath : prodPublicPath;
             }
 
-            const plugins = getWebpackPlugins(federateModuleName, exposes, publicPath, uuid, mode);
+            const plugins = getWebpackPlugins(
+                federateModuleName,
+                exposes,
+                publicPath,
+                uuid,
+                mode,
+                outputPath
+            );
 
             tailwindCssLoader = getTailwindCssLoader(twConfigPath);
 
@@ -481,7 +443,14 @@ function buildWebpackConfig(env, argv, rootDir) {
     } else {
         outputPath = path.resolve(dest, uuid);
         publicPath = mode === 'development' ? devPublicPath : prodPublicPath;
-        const plugins = getWebpackPlugins(federateModuleName, exposes, publicPath, uuid, mode);
+        const plugins = getWebpackPlugins(
+            federateModuleName,
+            exposes,
+            publicPath,
+            uuid,
+            mode,
+            outputPath
+        );
 
         if (tailwindConfigPath.length === 1) {
             tailwindCssLoader = getTailwindCssLoader(tailwindConfigPath[0].path);
