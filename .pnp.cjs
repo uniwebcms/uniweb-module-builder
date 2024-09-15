@@ -33,6 +33,7 @@ const RAW_RUNTIME_STATE =
           ["compression-webpack-plugin", "virtual:f2ad80efc0f9a56150084f2af77ddfc8295f6cd79d1d81295bab22fbc94c2426d31f07d97eeafdf8d6ddbcb17af8299dc85289103b75f1e46fd227cb2decc1d8#npm:10.0.0"],\
           ["file-loader", "virtual:f2ad80efc0f9a56150084f2af77ddfc8295f6cd79d1d81295bab22fbc94c2426d31f07d97eeafdf8d6ddbcb17af8299dc85289103b75f1e46fd227cb2decc1d8#npm:6.2.0"],\
           ["fs-extra", "npm:11.2.0"],\
+          ["js-yaml", "npm:4.1.0"],\
           ["postcss-preset-env", "virtual:f2ad80efc0f9a56150084f2af77ddfc8295f6cd79d1d81295bab22fbc94c2426d31f07d97eeafdf8d6ddbcb17af8299dc85289103b75f1e46fd227cb2decc1d8#npm:7.8.3"],\
           ["sass", "npm:1.77.8"],\
           ["sass-loader", "virtual:f2ad80efc0f9a56150084f2af77ddfc8295f6cd79d1d81295bab22fbc94c2426d31f07d97eeafdf8d6ddbcb17af8299dc85289103b75f1e46fd227cb2decc1d8#npm:12.6.0"],\
@@ -582,6 +583,7 @@ const RAW_RUNTIME_STATE =
           ["compression-webpack-plugin", "virtual:f2ad80efc0f9a56150084f2af77ddfc8295f6cd79d1d81295bab22fbc94c2426d31f07d97eeafdf8d6ddbcb17af8299dc85289103b75f1e46fd227cb2decc1d8#npm:10.0.0"],\
           ["file-loader", "virtual:f2ad80efc0f9a56150084f2af77ddfc8295f6cd79d1d81295bab22fbc94c2426d31f07d97eeafdf8d6ddbcb17af8299dc85289103b75f1e46fd227cb2decc1d8#npm:6.2.0"],\
           ["fs-extra", "npm:11.2.0"],\
+          ["js-yaml", "npm:4.1.0"],\
           ["postcss-preset-env", "virtual:f2ad80efc0f9a56150084f2af77ddfc8295f6cd79d1d81295bab22fbc94c2426d31f07d97eeafdf8d6ddbcb17af8299dc85289103b75f1e46fd227cb2decc1d8#npm:7.8.3"],\
           ["sass", "npm:1.77.8"],\
           ["sass-loader", "virtual:f2ad80efc0f9a56150084f2af77ddfc8295f6cd79d1d81295bab22fbc94c2426d31f07d97eeafdf8d6ddbcb17af8299dc85289103b75f1e46fd227cb2decc1d8#npm:12.6.0"],\
@@ -769,6 +771,15 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "../../.yarn/berry/cache/arg-npm-5.0.2-2f5805a547-10c0.zip/node_modules/arg/",\
         "packageDependencies": [\
           ["arg", "npm:5.0.2"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["argparse", [\
+      ["npm:2.0.1", {\
+        "packageLocation": "../../.yarn/berry/cache/argparse-npm-2.0.1-faff7999e6-10c0.zip/node_modules/argparse/",\
+        "packageDependencies": [\
+          ["argparse", "npm:2.0.1"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -1682,6 +1693,16 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "../../.yarn/berry/cache/jiti-npm-1.21.6-0bb76563a3-10c0.zip/node_modules/jiti/",\
         "packageDependencies": [\
           ["jiti", "npm:1.21.6"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["js-yaml", [\
+      ["npm:4.1.0", {\
+        "packageLocation": "../../.yarn/berry/cache/js-yaml-npm-4.1.0-3606f32312-10c0.zip/node_modules/js-yaml/",\
+        "packageDependencies": [\
+          ["js-yaml", "npm:4.1.0"],\
+          ["argparse", "npm:2.0.1"]\
         ],\
         "linkType": "HARD"\
       }]\

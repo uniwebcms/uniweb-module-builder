@@ -8,6 +8,7 @@ const webpack = require('webpack');
 const chalk = require('chalk');
 const CompressionPlugin = require('compression-webpack-plugin');
 // const AssetsPlugin = require('assets-webpack-plugin');
+const YamlSchemaPlugin = require('./yamlSchemaPlugin');
 
 const { ModuleFederationPlugin } = webpack.container;
 
@@ -67,6 +68,10 @@ function getWebpackPlugins(federateModuleName, exposes, publicUrl, uuid, mode, o
                     requiredVersion: '^6.4.2',
                 },
             },
+        }),
+        new YamlSchemaPlugin({
+            srcDir: '../src',
+            output: 'schema3.json',
         }),
         // new AssetsPlugin({
         //     filename: 'manifest.json',
