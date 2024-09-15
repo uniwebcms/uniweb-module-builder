@@ -9,6 +9,8 @@ const chalk = require('chalk');
 const CompressionPlugin = require('compression-webpack-plugin');
 // const AssetsPlugin = require('assets-webpack-plugin');
 const YamlSchemaPlugin = require('./yamlSchemaPlugin');
+const ManifestGeneratorPlugin = require('./manifestGeneratorPlugin');
+const CleanAndLogPlugin = require('./cleanAndLogPlugin');
 
 const { ModuleFederationPlugin } = webpack.container;
 
@@ -42,7 +44,15 @@ function findTailwindConfigFiles(rootDir) {
     return tailwindConfigPaths;
 }
 
-function getWebpackPlugins(federateModuleName, exposes, publicUrl, uuid, mode, outputPath) {
+function getWebpackPlugins(
+    federateModuleName,
+    exposes,
+    publicUrl,
+    uuid,
+    mode,
+    moduleName,
+    outputPath
+) {
     const compressionPlugin = new CompressionPlugin({
         filename: '[path][base].gzip',
         algorithm: 'gzip',
@@ -70,8 +80,19 @@ function getWebpackPlugins(federateModuleName, exposes, publicUrl, uuid, mode, o
             },
         }),
         new YamlSchemaPlugin({
-            srcDir: '../src',
+            srcDir: '../src/' + moduleName,
             output: 'schema3.json',
+        }),
+        ,
+        new ManifestGeneratorPlugin({
+            filename: 'manifest.json',
+        }),
+        new CleanAndLogPlugin({
+            outputPath,
+            publicUrl,
+            // uuid,
+            currentBuildUuid: uuid, // Make sure this is set in your build process
+            keepBuilds: 2, // Adjust this number as needed
         }),
         // new AssetsPlugin({
         //     filename: 'manifest.json',
@@ -79,24 +100,24 @@ function getWebpackPlugins(federateModuleName, exposes, publicUrl, uuid, mode, o
         //     path: outputPath,
         //     includeDynamicImportedAssets: true,
         // }),
-        function () {
-            this.hooks.done.tap('BuildCompletePlugin', (stats) => {
-                if (stats.compilation.errors.length === 0) {
-                    const separator = '-'.repeat(40); // Dashed line separator
+        // function () {
+        //     this.hooks.done.tap('BuildCompletePlugin', (stats) => {
+        //         if (stats.compilation.errors.length === 0) {
+        //             const separator = '-'.repeat(40); // Dashed line separator
 
-                    const cleanUrl = publicUrl
-                        .replace(new RegExp(`/${uuid}/|/+$`, 'g'), '/')
-                        .replace(/\/$/, '');
-                    const message = chalk.green.bold('PUBLIC URL: ') + chalk.white(cleanUrl);
+        //             const cleanUrl = publicUrl
+        //                 .replace(new RegExp(`/${uuid}/|/+$`, 'g'), '/')
+        //                 .replace(/\/$/, '');
+        //             const message = chalk.green.bold('PUBLIC URL: ') + chalk.white(cleanUrl);
 
-                    console.log('\n' + separator);
-                    console.log(message);
-                    console.log(separator + '\n');
-                } else {
-                    console.log('Webpack build encountered errors.');
-                }
-            });
-        },
+        //             console.log('\n' + separator);
+        //             console.log(message);
+        //             console.log(separator + '\n');
+        //         } else {
+        //             console.log('Webpack build encountered errors.');
+        //         }
+        //     });
+        // },
     ];
 
     if (mode === 'development') {
@@ -391,7 +412,7 @@ function buildWebpackConfig(env, argv, rootDir) {
     exposes[`./widgets`] = `../src/${module}`;
 
     // setup latest_version.txt
-    fs.outputFileSync(path.resolve(dest, 'latest_version.txt'), uuid);
+    // fs.outputFileSync(path.resolve(dest, 'latest_version.txt'), uuid);
 
     let config;
 
@@ -421,7 +442,8 @@ function buildWebpackConfig(env, argv, rootDir) {
                 publicPath,
                 uuid,
                 mode,
-                outputPath
+                module,
+                dest //outputPath
             );
 
             tailwindCssLoader = getTailwindCssLoader(twConfigPath);
@@ -454,7 +476,8 @@ function buildWebpackConfig(env, argv, rootDir) {
             publicPath,
             uuid,
             mode,
-            outputPath
+            module,
+            dest //outputPath
         );
 
         if (tailwindConfigPath.length === 1) {
