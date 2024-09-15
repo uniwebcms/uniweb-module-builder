@@ -32,12 +32,12 @@ class CleanOldBuildsAndLogPlugin {
         const logger = compiler.getInfrastructureLogger('CleanOldBuildsAndLogPlugin');
 
         compiler.hooks.done.tap('CleanOldBuildsAndLogPlugin', (stats) => {
-            if (stats.compilation.errors.length === 0) {
+            if (stats.hasErrors()) {
+                this.logErrors(stats, logger);
+            } else {
                 this.cleanOldBuilds(logger);
                 this.createLatestVersionFile(logger);
                 this.logSuccess(logger);
-            } else {
-                this.logError(logger);
             }
         });
     }
@@ -100,8 +100,23 @@ class CleanOldBuildsAndLogPlugin {
         // logger.info('This UUID is also available in latest_version.txt in the output directory.\n');
     }
 
-    logError(logger) {
-        logger.error('Webpack build encountered errors. Public URL not available.');
+    logErrors(stats, logger) {
+        const errors = stats.compilation.errors;
+        logger.error('Webpack build encountered errors:');
+
+        errors.forEach((error, index) => {
+            logger.error(`Error ${index + 1}:`);
+            if (error.module && error.module.resource) {
+                logger.error(`  File: ${error.module.resource}`);
+            }
+            logger.error(`  Message: ${error.message}`);
+            if (error.details) {
+                logger.error(`  Details: ${error.details}`);
+            }
+            logger.error(''); // Empty line for separation between errors
+        });
+
+        logger.error('Public URL not available due to build errors.');
     }
 
     cleanPublicUrl() {

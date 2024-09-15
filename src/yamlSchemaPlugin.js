@@ -2,19 +2,32 @@ const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
 const webpack = require('webpack');
+const imageSize = require('image-size');
+const sharp = require('sharp');
 
 class YamlSchemaPlugin {
     constructor(options = {}) {
         this.options = {
-            srcDir: '../src',
+            srcDir: 'src',
             output: 'schema.json',
             ...options,
         };
     }
 
     apply(compiler) {
-        // Get Webpack's infrastructure logger
-        const logger = compiler.getInfrastructureLogger('YamlToSchemaPlugin');
+        const logger = compiler.getInfrastructureLogger('YamlSchemaPlugin');
+
+        // Exclude PNG files from performance hints
+        if (compiler.options.performance && compiler.options.performance.assetFilter) {
+            const originalAssetFilter = compiler.options.performance.assetFilter;
+            compiler.options.performance.assetFilter = (assetFilename) => {
+                if (assetFilename.endsWith('.png')) return false;
+                return originalAssetFilter(assetFilename);
+            };
+        } else if (compiler.options.performance) {
+            compiler.options.performance.assetFilter = (assetFilename) =>
+                !assetFilename.endsWith('.png');
+        }
 
         compiler.hooks.thisCompilation.tap('YamlSchemaPlugin', (compilation) => {
             compilation.hooks.processAssets.tapAsync(
@@ -22,56 +35,149 @@ class YamlSchemaPlugin {
                     name: 'YamlSchemaPlugin',
                     stage: webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL,
                 },
-                (assets, callback) => {
-                    const schema = {};
+                async (assets, callback) => {
+                    const schema = { _self: {} };
                     const srcDir = path.resolve(compiler.context, this.options.srcDir);
+                    const isProduction = compilation.compiler.options.mode === 'production';
 
-                    const files = findYmlFiles(srcDir);
-
-                    files.forEach((file) => {
-                        try {
-                            const content = fs.readFileSync(file, 'utf8');
-                            const data = yaml.load(content);
-                            const componentName = path.basename(path.dirname(path.dirname(file)));
-                            schema[componentName] = data;
-                        } catch (err) {
-                            compilation.errors.push(
-                                new Error(`Error processing ${file}: ${err.message}`)
-                            );
-                        }
-                    });
-
-                    const schemaJson = JSON.stringify(schema, null, 2);
-                    compilation.emitAsset(
-                        this.options.output,
-                        new webpack.sources.RawSource(schemaJson)
-                    );
+                    try {
+                        this.processModuleConfig(srcDir, schema);
+                        await this.processComponentConfigs(
+                            srcDir,
+                            schema,
+                            compilation,
+                            isProduction
+                        );
+                        this.emitSchema(compilation, schema);
+                        await this.handleAssets(compilation, srcDir, schema, isProduction);
+                    } catch (err) {
+                        compilation.errors.push(
+                            new Error(`YamlSchemaPlugin error: ${err.message}`)
+                        );
+                    }
 
                     callback();
                 }
             );
         });
     }
-}
 
-// A function to recursively search for .yml files in a directory
-function findYmlFiles(dir, fileList = []) {
-    const files = fs.readdirSync(dir); // Read all files in the directory
-
-    files.forEach((file) => {
-        const filePath = path.join(dir, file);
-        const stat = fs.statSync(filePath); // Get file info (e.g., whether it's a file or directory)
-
-        if (stat.isDirectory()) {
-            // If it's a directory, recurse into it
-            findYmlFiles(filePath, fileList);
-        } else if (path.extname(file) === '.yml') {
-            // If it's a .yml file, add it to the list
-            fileList.push(filePath);
+    processModuleConfig(srcDir, schema) {
+        const moduleConfigPath = path.join(srcDir, 'config.yml');
+        if (fs.existsSync(moduleConfigPath)) {
+            const moduleConfig = yaml.load(fs.readFileSync(moduleConfigPath, 'utf8'));
+            schema._self = moduleConfig;
         }
-    });
+    }
 
-    return fileList;
+    async processComponentConfigs(srcDir, schema, compilation, isProduction) {
+        const componentDirs = fs.readdirSync(path.join(srcDir, 'components'));
+        for (const componentDir of componentDirs) {
+            const configPath = path.join(srcDir, 'components', componentDir, 'meta', 'config.yml');
+            if (fs.existsSync(configPath)) {
+                const config = yaml.load(fs.readFileSync(configPath, 'utf8'));
+                if (config.export !== false) {
+                    schema[componentDir] = await this.processComponentConfig(
+                        config,
+                        componentDir,
+                        srcDir,
+                        compilation,
+                        isProduction
+                    );
+                }
+            }
+        }
+    }
+
+    async processComponentConfig(config, componentDir, srcDir, compilation, isProduction) {
+        const processedConfig = { ...config, name: componentDir };
+
+        if (config.presets) {
+            processedConfig.presets = await Promise.all(
+                Object.entries(config.presets).map(async ([presetName, preset]) => {
+                    const imagePath = path.join(
+                        srcDir,
+                        'components',
+                        componentDir,
+                        'meta',
+                        `${presetName}.png`
+                    );
+                    let imageInfo = {};
+                    if (fs.existsSync(imagePath)) {
+                        const { width, height } = imageSize(imagePath);
+                        const outputFormat = isProduction ? 'webp' : 'png';
+                        const outputFilename = `${presetName}.${outputFormat}`;
+                        imageInfo = {
+                            height,
+                            width,
+                            type: outputFormat,
+                            path: `assets/${componentDir}/${outputFilename}`,
+                        };
+                        await this.processAndEmitImage(
+                            compilation,
+                            imagePath,
+                            `assets/${componentDir}/${outputFilename}`,
+                            isProduction
+                        );
+                    }
+                    return { ...preset, image: imageInfo };
+                })
+            );
+        }
+
+        return processedConfig;
+    }
+
+    emitSchema(compilation, schema) {
+        const schemaJson = JSON.stringify(schema, null, 2);
+        compilation.emitAsset(this.options.output, new webpack.sources.RawSource(schemaJson));
+    }
+
+    async handleAssets(compilation, srcDir, schema, isProduction) {
+        for (const componentName of Object.keys(schema)) {
+            if (componentName !== '_self') {
+                const componentDir = path.join(srcDir, 'components', componentName);
+                const metaDir = path.join(componentDir, 'meta');
+                if (fs.existsSync(metaDir)) {
+                    const files = fs.readdirSync(metaDir);
+                    for (const file of files) {
+                        if (file.endsWith('.png') || file.endsWith('.jpg')) {
+                            const sourcePath = path.join(metaDir, file);
+                            const outputFormat = isProduction
+                                ? 'webp'
+                                : path.extname(file).slice(1);
+                            const outputFilename = `${path.basename(
+                                file,
+                                path.extname(file)
+                            )}.${outputFormat}`;
+                            const destPath = `assets/${componentName}/${outputFilename}`;
+                            await this.processAndEmitImage(
+                                compilation,
+                                sourcePath,
+                                destPath,
+                                isProduction
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    async processAndEmitImage(compilation, sourcePath, destPath, isProduction) {
+        if (isProduction) {
+            const webpBuffer = await sharp(sourcePath).webp({ quality: 80 }).toBuffer();
+            compilation.emitAsset(destPath, new webpack.sources.RawSource(webpBuffer));
+        } else {
+            this.createSymlink(compilation, sourcePath, destPath);
+        }
+    }
+
+    createSymlink(compilation, sourcePath, destPath) {
+        const absoluteDestPath = path.join(compilation.outputOptions.path, destPath);
+        fs.mkdirSync(path.dirname(absoluteDestPath), { recursive: true });
+        fs.symlinkSync(sourcePath, absoluteDestPath);
+    }
 }
 
 module.exports = YamlSchemaPlugin;
