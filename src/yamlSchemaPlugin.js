@@ -16,8 +16,6 @@ class YamlSchemaPlugin {
         // Get Webpack's infrastructure logger
         const logger = compiler.getInfrastructureLogger('YamlToSchemaPlugin');
 
-        // logger.info('Yaml parser loaded v2!!!');
-
         compiler.hooks.thisCompilation.tap('YamlSchemaPlugin', (compilation) => {
             compilation.hooks.processAssets.tapAsync(
                 {
@@ -28,17 +26,9 @@ class YamlSchemaPlugin {
                     const schema = {};
                     const srcDir = path.resolve(compiler.context, this.options.srcDir);
 
-                    // logger.info('Starting to process YAML files in: ' + srcDir);
-
                     const files = findYmlFiles(srcDir);
 
                     files.forEach((file) => {
-                        // Check the name of the file and whether is under a
-                        // meta parent folder. ie either meta/config.yml
-                        // or FIRST module.yml under /src
-
-                        // logger.info('Processing: ' + file);
-
                         try {
                             const content = fs.readFileSync(file, 'utf8');
                             const data = yaml.load(content);
@@ -61,40 +51,6 @@ class YamlSchemaPlugin {
                 }
             );
         });
-
-        // compiler.hooks.emit.tapAsync('YamlSchemaPlugin', (compilation, callback) => {
-        //     const schema = {};
-
-        //     const srcDir = path.resolve(compiler.context, '../src');
-
-        //     // Log that the plugin is starting to process files
-        //     logger.info('Starting to process YAML files in: ' + srcDir);
-
-        //     // Find all YAML files
-        //     const files = findYmlFiles(srcDir);
-
-        //     // Read and parse each YAML file
-        //     files.forEach((file) => {
-        //         logger.info('Processing: ' + file);
-        //         try {
-        //             const content = fs.readFileSync(file, 'utf8');
-        //             const data = yaml.load(content);
-        //             const componentName = path.basename(path.dirname(path.dirname(file)));
-        //             schema[componentName] = data;
-        //         } catch (err) {
-        //             compilation.errors.push(new Error(`Error processing ${file}: ${err.message}`));
-        //         }
-        //     });
-
-        //     // Add the schema.json to webpack output
-        //     const schemaJson = JSON.stringify(schema, null, 2);
-        //     compilation.assets[this.options.output] = {
-        //         source: () => schemaJson,
-        //         size: () => schemaJson.length,
-        //     };
-
-        //     callback();
-        // });
     }
 }
 
