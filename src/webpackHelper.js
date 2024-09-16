@@ -5,7 +5,8 @@ const { URL } = require('url');
 const postpresetenv = require('postcss-preset-env');
 const autoprefixer = require('autoprefixer');
 const webpack = require('webpack');
-const chalk = require('chalk');
+const yaml = require('js-yaml');
+// const chalk = require('chalk');
 const CompressionPlugin = require('compression-webpack-plugin');
 // const AssetsPlugin = require('assets-webpack-plugin');
 const YamlSchemaPlugin = require('./yamlSchemaPlugin');
@@ -13,6 +14,42 @@ const ManifestGeneratorPlugin = require('./manifestGeneratorPlugin');
 const CleanAndLogPlugin = require('./cleanAndLogPlugin');
 
 const { ModuleFederationPlugin } = webpack.container;
+
+function generateDynamicExports(srcDir, outputFile) {
+    const componentsDir = path.join(srcDir, 'components');
+    const exportedComponents = [];
+
+    // Read all component directories
+    const componentDirs = fs.readdirSync(componentsDir);
+
+    componentDirs.forEach((componentDir) => {
+        const configPath = path.join(componentsDir, componentDir, 'meta', 'config.yml');
+
+        if (fs.existsSync(configPath)) {
+            try {
+                const config = yaml.load(fs.readFileSync(configPath, 'utf8'));
+                if (config.export !== false) {
+                    exportedComponents.push(componentDir);
+                }
+            } catch (error) {
+                console.error(`Error processing config for ${componentDir}:`, error);
+            }
+        }
+    });
+
+    // Generate the content for dynamicExports.js
+    const content = exportedComponents
+        .map((component) => `export { default as ${component} } from './components/${component}';`)
+        .join('\n');
+
+    // Generate the content for dynamicExports.js
+    const warningComment = `// WARNING: This file is auto-generated. DO NOT EDIT MANUALLY.\n`;
+
+    // Write the content to the output file
+    fs.writeFileSync(outputFile, warningComment + content);
+
+    console.log(`Generated ${outputFile} with ${exportedComponents.length} exported components.`);
+}
 
 function validUrl(url) {
     if (!url) return '';
@@ -44,15 +81,9 @@ function findTailwindConfigFiles(rootDir) {
     return tailwindConfigPaths;
 }
 
-function getWebpackPlugins(
-    federateModuleName,
-    exposes,
-    publicUrl,
-    uuid,
-    mode,
-    moduleName,
-    outputPath
-) {
+function getWebpackPlugins(props) {
+    const { federateModuleName, exposes, publicUrl, uuid, mode, moduleName, outputPath } = props;
+
     const compressionPlugin = new CompressionPlugin({
         filename: '[path][base].gzip',
         algorithm: 'gzip',
@@ -66,7 +97,7 @@ function getWebpackPlugins(
         new ModuleFederationPlugin({
             name: federateModuleName,
             filename: 'remoteEntry.js',
-            exposes,
+            exposes, //  For Module Federation Plugin to expose modules
             shared: {
                 react: { singleton: true, requiredVersion: '^18.2.0' },
                 'react-dom': {
@@ -83,7 +114,6 @@ function getWebpackPlugins(
             srcDir: '../src/' + moduleName,
             output: 'schema3.json',
         }),
-        ,
         new ManifestGeneratorPlugin({
             filename: 'manifest.json',
         }),
@@ -143,20 +173,27 @@ function getTailwindCssLoader(tailwindPath) {
     };
 }
 
-function constructWebpackConfig(
-    mode,
-    rootDir,
-    outputPath,
-    publicPath,
-    DEV_SERVER_PORT,
-    tailwindCssLoader,
-    plugins
-) {
+function constructWebpackConfig(props) {
+    const {
+        mode,
+        rootDir,
+        outputPath,
+        publicPath,
+        DEV_SERVER_PORT,
+        tailwindCssLoader,
+        plugins,
+        moduleName,
+    } = props;
+
     return {
         mode,
-        entry: path.resolve(rootDir, 'entry.js'),
+        entry: path.resolve(rootDir, `../src/${moduleName}/index.js`), //path.resolve(rootDir, 'entry.js'),
         resolve: {
             extensions: ['.jsx', '.js', '.json'],
+            // alias: {
+            //     '@': path.resolve(rootDir, '../src'),
+            //     // './dynamicExports': path.resolve(rootDir, '../dist', 'dynamicExports.js'),
+            // },
         },
         output: {
             filename: 'main.[contenthash].js',
@@ -403,10 +440,15 @@ function buildWebpackConfig(env, argv, rootDir) {
         throw new Error(`Module: ${module} not exist!`);
     }
 
-    // write dynamic entry.js
-    const entryFile = path.resolve(rootDir, `entry.js`);
-    const entryContent = `import("../src/${module}");\n`;
-    fs.writeFileSync(entryFile, entryContent.trim(), { flag: 'w' });
+    const srcModuleDir = path.resolve(rootDir, `../src/${module}`);
+
+    // Generate dynamic exports
+    generateDynamicExports(srcModuleDir, path.resolve(srcModuleDir, 'dynamicExports.js'));
+
+    // // write dynamic entry.js
+    // const entryFile = path.resolve(rootDir, `entry.js`);
+    // const entryContent = `import("../src/${module}");\n`;
+    // fs.writeFileSync(entryFile, entryContent.trim(), { flag: 'w' });
 
     // set exposes module
     exposes[`./widgets`] = `../src/${module}`;
@@ -436,15 +478,15 @@ function buildWebpackConfig(env, argv, rootDir) {
                 publicPath = mode === 'development' ? devPublicPath : prodPublicPath;
             }
 
-            const plugins = getWebpackPlugins(
+            const plugins = getWebpackPlugins({
                 federateModuleName,
                 exposes,
-                publicPath,
+                publicUrl: publicPath,
                 uuid,
                 mode,
-                module,
-                dest //outputPath
-            );
+                moduleName: module,
+                outputPath: dest, //outputPath
+            });
 
             tailwindCssLoader = getTailwindCssLoader(twConfigPath);
 
@@ -457,28 +499,29 @@ function buildWebpackConfig(env, argv, rootDir) {
                 kind ? `with variant: ${kind}` : ''
             );
 
-            return constructWebpackConfig(
+            return constructWebpackConfig({
                 mode,
                 rootDir,
                 outputPath,
                 publicPath,
                 DEV_SERVER_PORT,
                 tailwindCssLoader,
-                plugins
-            );
+                plugins,
+                moduleName: module,
+            });
         });
     } else {
         outputPath = path.resolve(dest, uuid);
         publicPath = mode === 'development' ? devPublicPath : prodPublicPath;
-        const plugins = getWebpackPlugins(
+        const plugins = getWebpackPlugins({
             federateModuleName,
             exposes,
-            publicPath,
+            publicUrl: publicPath,
             uuid,
             mode,
-            module,
-            dest //outputPath
-        );
+            moduleName: module,
+            outputPath: dest,
+        });
 
         if (tailwindConfigPath.length === 1) {
             tailwindCssLoader = getTailwindCssLoader(tailwindConfigPath[0].path);
@@ -492,15 +535,16 @@ function buildWebpackConfig(env, argv, rootDir) {
             `under ${mode} mode`
         );
 
-        config = constructWebpackConfig(
+        config = constructWebpackConfig({
             mode,
             rootDir,
             outputPath,
             publicPath,
             DEV_SERVER_PORT,
             tailwindCssLoader,
-            plugins
-        );
+            plugins,
+            moduleName: module,
+        });
     }
 
     return {
