@@ -50,7 +50,11 @@ module.exports = function startServer(dirname, port) {
         // Check for the ready message (adjust based on the exact message printed by http-server)
         if (data.toString().includes('Available on')) {
             serverReady = true; // Set flag to stop further output
-            console.log(chalk.blue(`Creating public tunnel to http://localhost:${port}...`));
+            const tunnelMsg = options.tunnel
+                ? `Creating public tunnel to http://localhost:${port}...`
+                : `No tunnel created. Use option --tunnel to start a quick tunnel.`;
+
+            console.log(chalk.blue(tunnelMsg));
         }
     });
 
