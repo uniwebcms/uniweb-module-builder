@@ -30,6 +30,7 @@ const RAW_RUNTIME_STATE =
           ["assets-webpack-plugin", "virtual:f2ad80efc0f9a56150084f2af77ddfc8295f6cd79d1d81295bab22fbc94c2426d31f07d97eeafdf8d6ddbcb17af8299dc85289103b75f1e46fd227cb2decc1d8#npm:7.1.1"],\
           ["autoprefixer", "virtual:f2ad80efc0f9a56150084f2af77ddfc8295f6cd79d1d81295bab22fbc94c2426d31f07d97eeafdf8d6ddbcb17af8299dc85289103b75f1e46fd227cb2decc1d8#npm:10.4.19"],\
           ["chalk", "npm:4.1.2"],\
+          ["cloudflared", "npm:0.5.3"],\
           ["compression-webpack-plugin", "virtual:f2ad80efc0f9a56150084f2af77ddfc8295f6cd79d1d81295bab22fbc94c2426d31f07d97eeafdf8d6ddbcb17af8299dc85289103b75f1e46fd227cb2decc1d8#npm:10.0.0"],\
           ["file-loader", "virtual:f2ad80efc0f9a56150084f2af77ddfc8295f6cd79d1d81295bab22fbc94c2426d31f07d97eeafdf8d6ddbcb17af8299dc85289103b75f1e46fd227cb2decc1d8#npm:6.2.0"],\
           ["fs-extra", "npm:11.2.0"],\
@@ -772,6 +773,7 @@ const RAW_RUNTIME_STATE =
           ["assets-webpack-plugin", "virtual:f2ad80efc0f9a56150084f2af77ddfc8295f6cd79d1d81295bab22fbc94c2426d31f07d97eeafdf8d6ddbcb17af8299dc85289103b75f1e46fd227cb2decc1d8#npm:7.1.1"],\
           ["autoprefixer", "virtual:f2ad80efc0f9a56150084f2af77ddfc8295f6cd79d1d81295bab22fbc94c2426d31f07d97eeafdf8d6ddbcb17af8299dc85289103b75f1e46fd227cb2decc1d8#npm:10.4.19"],\
           ["chalk", "npm:4.1.2"],\
+          ["cloudflared", "npm:0.5.3"],\
           ["compression-webpack-plugin", "virtual:f2ad80efc0f9a56150084f2af77ddfc8295f6cd79d1d81295bab22fbc94c2426d31f07d97eeafdf8d6ddbcb17af8299dc85289103b75f1e46fd227cb2decc1d8#npm:10.0.0"],\
           ["file-loader", "virtual:f2ad80efc0f9a56150084f2af77ddfc8295f6cd79d1d81295bab22fbc94c2426d31f07d97eeafdf8d6ddbcb17af8299dc85289103b75f1e46fd227cb2decc1d8#npm:6.2.0"],\
           ["fs-extra", "npm:11.2.0"],\
@@ -1193,6 +1195,15 @@ const RAW_RUNTIME_STATE =
           ["string-width", "npm:4.2.3"],\
           ["strip-ansi", "npm:6.0.1"],\
           ["wrap-ansi", "npm:7.0.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["cloudflared", [\
+      ["npm:0.5.3", {\
+        "packageLocation": "./.yarn/unplugged/cloudflared-npm-0.5.3-1806bb09a3/node_modules/cloudflared/",\
+        "packageDependencies": [\
+          ["cloudflared", "npm:0.5.3"]\
         ],\
         "linkType": "HARD"\
       }]\

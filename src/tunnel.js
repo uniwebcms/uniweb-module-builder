@@ -1,71 +1,29 @@
-// const { spawn } = require('child_process');
-const exec = require('child_process').exec;
+// const fs = require('fs');
+const cf = require('cloudflared');
+const tunnel = cf.tunnel;
 
-module.exports = function createTunnel(port = 3005) {
-    return new Promise((resolve, reject) => {
-        // Can use 'create', 'my-tunnel' as well
-        // const process = spawn('yarn run cloudflared', [
-        //     'tunnel',
-        //     '--url',
-        //     `http://localhost:${port}`,
-        // ]);
+module.exports = async function createTunnel(port = 3005) {
+    // if (!fs.existsSync(cf.bin)) {
+    //     // install binary
+    //     await install(cd.bin);
+    // }
 
-        const process = exec('yarn run cloudflared tunnel --url http://localhost:3005');
+    const { url, connections, child } = tunnel({ '--url': `http://localhost:${port}` });
 
-        // process.stdout.on('data', (data) => {
-        //     const output = data.toString();
-        //     const regex = /URL: (\S+)/;
-        //     const match = output.match(regex);
+    const tunnelUrl = await url;
 
-        //     if (match) {
-        //         const tunnelURL = match[1];
-        //         console.log(`Tunnel URL: ${tunnelURL}`);
-        //     }
-        // });
+    // show the url
+    // console.log('LINK:', tunnelUrl);
 
-        process.stderr.on('data', (data) => {
-            const output = data.toString();
-            const regex = /https:\/\/.*?\.trycloudflare\.com/g;
-            const match = regex.exec(output);
+    // wait for the all connections to be established
+    // const conns = await Promise.all(connections);
 
-            if (match) {
-                const tunnelURL = match[0];
-                // console.log(`Tunnel URL: ${tunnelURL}`);
-                resolve(tunnelURL);
-            }
-        });
+    // show the connections
+    // console.log('Connections Ready!', conns);
 
-        process.on('error', (err) => {
-            console.error(`Error: ${err.message}`);
-            reject(err);
-        });
-
-        process.on('exit', (code) => {
-            console.log(`Process exited with code ${code}`);
-            if (code !== 0) {
-                reject(new Error(`Process exited with code ${code}`));
-            }
-        });
-
-        // process.on('close', (code) => {
-        //     if (code !== 0) {
-        //         // Reject the promise if the process closes with a non-zero code
-        //         reject(new Error(`Process closed with code ${code}`));
-        //     }
-        // });
-
-        // // Listen for SIGINT event in the parent process
-        // process.on('SIGINT', () => {
-        //     console.log('Process received SIGINT signal');
-
-        //     // Kill the child process
-        //     // childProcess.kill();
-
-        //     // Perform any necessary cleanup or additional actions
-        //     // ...
-
-        //     // Exit the parent process
-        //     process.exit();
-        // });
+    child.on('exit', (code) => {
+        console.log('tunnel process exited with code', code);
     });
+
+    return tunnelUrl;
 };

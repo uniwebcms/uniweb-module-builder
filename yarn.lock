@@ -500,6 +500,7 @@ __metadata:
     assets-webpack-plugin: "npm:^7.1.1"
     autoprefixer: "npm:^10.4.13"
     chalk: "npm:^4.1.2"
+    cloudflared: "npm:^0.5.3"
     compression-webpack-plugin: "npm:^10.0.0"
     file-loader: "npm:^6.2.0"
     fs-extra: "npm:^11.1.0"
@@ -850,6 +851,15 @@ __metadata:
     strip-ansi: "npm:^6.0.1"
     wrap-ansi: "npm:^7.0.0"
   checksum: 4bda0f09c340cbb6dfdc1ed508b3ca080f12992c18d68c6be4d9cf51756033d5266e61ec57529e610dacbf4da1c634423b0c1b11037709cc6b09045cbd815df5
+  languageName: node
+  linkType: hard
+
+"cloudflared@npm:^0.5.3":
+  version: 0.5.3
+  resolution: "cloudflared@npm:0.5.3"
+  bin:
+    cloudflared: lib/cloudflared.js
+  checksum: d52dee2ebc8845e104a27ea974fbb6848c977fc1ae92a9b0a767d7f942a1aafda19a962349309be9af142a79b4da0c2d89ce49c1b156a02daad000a3b013bff6
   languageName: node
   linkType: hard
 

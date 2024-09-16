@@ -27,6 +27,7 @@
         "assets-webpack-plugin": "^7.1.1",
         "autoprefixer": "^10.4.13",
         "chalk": "^4.1.2",
+        "cloudflared": "^0.5.3",
         "compression-webpack-plugin": "^10.0.0",
         "file-loader": "^6.2.0",
         "fs-extra": "^11.1.0",

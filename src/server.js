@@ -40,27 +40,33 @@ module.exports = function startServer(dirname, port) {
     const cmd = `yarn run http-server ${dest} -p=${port} --cors --gzip ${cache}`;
 
     const serverProcess = exec(cmd);
+    let serverReady = false;
 
     serverProcess.stdout.on('data', (data) => {
-        console.log(data);
+        if (serverReady) return;
+
+        console.log(data); // Print the output until the server is ready
+
+        // Check for the ready message (adjust based on the exact message printed by http-server)
+        if (data.toString().includes('Available on')) {
+            serverReady = true; // Set flag to stop further output
+            console.log(chalk.blue(`Creating public tunnel to http://localhost:${port}...`));
+        }
     });
 
     serverProcess.stderr.on('data', (data) => {
-        console.log(chalk.red.bold('Error: Cannot start web server'));
+        // console.log(chalk.red.bold('Error: Cannot start web server'));
         console.log(data);
     });
 
     if (options.tunnel) {
-        createTunnel()
+        createTunnel(port)
             .then((tunnelUrl) => {
                 fs.writeFileSync(tunnelFilename, tunnelUrl);
 
-                const separator = '-'.repeat(40); // Dashed line separator
-                const message = chalk.green.bold('Tunnel: ') + chalk.white(tunnelUrl);
+                const message = chalk.green.bold(`\nTunnel: `) + chalk.white(tunnelUrl) + '\n';
 
-                console.log('\n' + separator);
                 console.log(message);
-                console.log(separator + '\n');
             })
             .catch((error) => {
                 console.error('Error:', error);
