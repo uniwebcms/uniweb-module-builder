@@ -116,7 +116,7 @@ class CleanOldBuildsAndLogPlugin {
             logger.error(''); // Empty line for separation between errors
         });
 
-        logger.error('Public URL not available due to build errors.');
+        // logger.error('Public URL not available due to build errors.');
     }
 
     cleanPublicUrl() {

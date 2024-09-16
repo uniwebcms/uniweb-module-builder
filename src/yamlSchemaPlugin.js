@@ -76,7 +76,7 @@ class YamlSchemaPlugin {
             const configPath = path.join(srcDir, 'components', componentDir, 'meta', 'config.yml');
             if (fs.existsSync(configPath)) {
                 const config = yaml.load(fs.readFileSync(configPath, 'utf8'));
-                if (config.export !== false) {
+                if (config && config.export !== false) {
                     schema[componentDir] = await this.processComponentConfig(
                         config,
                         componentDir,
@@ -176,7 +176,9 @@ class YamlSchemaPlugin {
     createSymlink(compilation, sourcePath, destPath) {
         const absoluteDestPath = path.join(compilation.outputOptions.path, destPath);
         fs.mkdirSync(path.dirname(absoluteDestPath), { recursive: true });
-        fs.symlinkSync(sourcePath, absoluteDestPath);
+        if (!fs.existsSync(absoluteDestPath)) {
+            fs.symlinkSync(sourcePath, absoluteDestPath);
+        }
     }
 }
 

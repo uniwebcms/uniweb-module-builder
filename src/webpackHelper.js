@@ -23,12 +23,14 @@ function generateDynamicExports(srcDir, outputFile) {
     const componentDirs = fs.readdirSync(componentsDir);
 
     componentDirs.forEach((componentDir) => {
-        const configPath = path.join(componentsDir, componentDir, 'meta', 'config.yml');
+        const absDir = path.join(componentsDir, componentDir);
+        const indexPath = path.join(absDir, 'index.js');
+        const configPath = path.join(absDir, 'meta', 'config.yml');
 
-        if (fs.existsSync(configPath)) {
+        if (fs.existsSync(indexPath) && fs.existsSync(configPath)) {
             try {
                 const config = yaml.load(fs.readFileSync(configPath, 'utf8'));
-                if (config.export !== false) {
+                if (config && config.export !== false) {
                     exportedComponents.push(componentDir);
                 }
             } catch (error) {
@@ -38,15 +40,20 @@ function generateDynamicExports(srcDir, outputFile) {
     });
 
     // Generate the content for dynamicExports.js
-    const content = exportedComponents
+    let newContent = `// WARNING: This file is auto-generated. DO NOT EDIT MANUALLY.\n`;
+
+    // Generate the content for dynamicExports.js
+    newContent += exportedComponents
         .map((component) => `export { default as ${component} } from './components/${component}';`)
         .join('\n');
 
-    // Generate the content for dynamicExports.js
-    const warningComment = `// WARNING: This file is auto-generated. DO NOT EDIT MANUALLY.\n`;
+    // Check if the file exists and read its content
+    const oldContent = fs.existsSync(outputFile) ? fs.readFileSync(outputFile, 'utf8') : '';
 
     // Write the content to the output file
-    fs.writeFileSync(outputFile, warningComment + content);
+    if (newContent !== oldContent) {
+        fs.writeFileSync(outputFile, newContent);
+    }
 
     console.log(`Generated ${outputFile} with ${exportedComponents.length} exported components.`);
 }
@@ -84,15 +91,6 @@ function findTailwindConfigFiles(rootDir) {
 function getWebpackPlugins(props) {
     const { federateModuleName, exposes, publicUrl, uuid, mode, moduleName, outputPath } = props;
 
-    const compressionPlugin = new CompressionPlugin({
-        filename: '[path][base].gzip',
-        algorithm: 'gzip',
-        test: /\.(js|css|html|svg)$/,
-        threshold: 10240,
-        minRatio: 0.8,
-        deleteOriginalAssets: false,
-    });
-
     const plugins = [
         new ModuleFederationPlugin({
             name: federateModuleName,
@@ -112,47 +110,26 @@ function getWebpackPlugins(props) {
         }),
         new YamlSchemaPlugin({
             srcDir: '../src/' + moduleName,
-            output: 'schema3.json',
-        }),
-        new ManifestGeneratorPlugin({
-            filename: 'manifest.json',
+            output: 'schema.json',
         }),
         new CleanAndLogPlugin({
             outputPath,
             publicUrl,
-            // uuid,
             currentBuildUuid: uuid, // Make sure this is set in your build process
             keepBuilds: 2, // Adjust this number as needed
         }),
-        // new AssetsPlugin({
-        //     filename: 'manifest.json',
-        //     prettyPrint: true,
-        //     path: outputPath,
-        //     includeDynamicImportedAssets: true,
-        // }),
-        // function () {
-        //     this.hooks.done.tap('BuildCompletePlugin', (stats) => {
-        //         if (stats.compilation.errors.length === 0) {
-        //             const separator = '-'.repeat(40); // Dashed line separator
-
-        //             const cleanUrl = publicUrl
-        //                 .replace(new RegExp(`/${uuid}/|/+$`, 'g'), '/')
-        //                 .replace(/\/$/, '');
-        //             const message = chalk.green.bold('PUBLIC URL: ') + chalk.white(cleanUrl);
-
-        //             console.log('\n' + separator);
-        //             console.log(message);
-        //             console.log(separator + '\n');
-        //         } else {
-        //             console.log('Webpack build encountered errors.');
-        //         }
-        //     });
-        // },
+        // Prod-mode needs manifest / Dev-mode needs compression
+        mode !== 'development'
+            ? new ManifestGeneratorPlugin()
+            : new CompressionPlugin({
+                  filename: '[path][base].gzip',
+                  algorithm: 'gzip',
+                  test: /\.(js|css|html|svg)$/,
+                  threshold: 10240,
+                  minRatio: 0.8,
+                  deleteOriginalAssets: false,
+              }),
     ];
-
-    if (mode === 'development') {
-        plugins.push(compressionPlugin);
-    }
 
     return plugins;
 }
