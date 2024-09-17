@@ -5,58 +5,14 @@ const { URL } = require('url');
 const postpresetenv = require('postcss-preset-env');
 const autoprefixer = require('autoprefixer');
 const webpack = require('webpack');
-const yaml = require('js-yaml');
 // const chalk = require('chalk');
 const CompressionPlugin = require('compression-webpack-plugin');
 // const AssetsPlugin = require('assets-webpack-plugin');
 const YamlSchemaPlugin = require('./yamlSchemaPlugin');
 const ManifestGeneratorPlugin = require('./manifestGeneratorPlugin');
 const CleanAndLogPlugin = require('./cleanAndLogPlugin');
-
+const generateExports = require('./generateExports');
 const { ModuleFederationPlugin } = webpack.container;
-
-function generateDynamicExports(srcDir, outputFile) {
-    const componentsDir = path.join(srcDir, 'components');
-    const exportedComponents = [];
-
-    // Read all component directories
-    const componentDirs = fs.readdirSync(componentsDir);
-
-    componentDirs.forEach((componentDir) => {
-        const absDir = path.join(componentsDir, componentDir);
-        const indexPath = path.join(absDir, 'index.js');
-        const configPath = path.join(absDir, 'meta', 'config.yml');
-
-        if (fs.existsSync(indexPath) && fs.existsSync(configPath)) {
-            try {
-                const config = yaml.load(fs.readFileSync(configPath, 'utf8'));
-                if (config && config.export !== false) {
-                    exportedComponents.push(componentDir);
-                }
-            } catch (error) {
-                console.error(`Error processing config for ${componentDir}:`, error);
-            }
-        }
-    });
-
-    // Generate the content for dynamicExports.js
-    let newContent = `// WARNING: This file is auto-generated. DO NOT EDIT MANUALLY.\n`;
-
-    // Generate the content for dynamicExports.js
-    newContent += exportedComponents
-        .map((component) => `export { default as ${component} } from './components/${component}';`)
-        .join('\n');
-
-    // Check if the file exists and read its content
-    const oldContent = fs.existsSync(outputFile) ? fs.readFileSync(outputFile, 'utf8') : '';
-
-    // Write the content to the output file
-    if (newContent !== oldContent) {
-        fs.writeFileSync(outputFile, newContent);
-    }
-
-    console.log(`Generated ${outputFile} with ${exportedComponents.length} exported components.`);
-}
 
 function validUrl(url) {
     if (!url) return '';
@@ -417,10 +373,8 @@ function buildWebpackConfig(env, argv, rootDir) {
         throw new Error(`Module: ${module} not exist!`);
     }
 
-    const srcModuleDir = path.resolve(rootDir, `../src/${module}`);
-
-    // Generate dynamic exports
-    generateDynamicExports(srcModuleDir, path.resolve(srcModuleDir, 'dynamicExports.js'));
+    // Generate dynamic exports for the current module
+    generateExports(path.resolve(rootDir, `../src`), module);
 
     // // write dynamic entry.js
     // const entryFile = path.resolve(rootDir, `entry.js`);
