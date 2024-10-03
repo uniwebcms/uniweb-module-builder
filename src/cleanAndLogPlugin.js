@@ -37,6 +37,7 @@ class CleanOldBuildsAndLogPlugin {
             } else {
                 this.cleanOldBuilds(logger);
                 this.createLatestVersionFile(logger);
+                this.createSchemaFolder(logger);
                 this.logSuccess(logger);
             }
         });
@@ -49,7 +50,8 @@ class CleanOldBuildsAndLogPlugin {
                 const folderPath = path.join(this.options.outputPath, folder);
                 return (
                     fs.statSync(folderPath).isDirectory() &&
-                    folder !== this.options.currentBuildUuid
+                    folder !== this.options.currentBuildUuid &&
+                    folder !== '_site' // skip special folder
                 );
             })
             .sort((a, b) => {
@@ -72,6 +74,18 @@ class CleanOldBuildsAndLogPlugin {
         const latestVersionPath = path.join(this.options.outputPath, 'latest_version.txt');
         fs.writeFileSync(latestVersionPath, this.options.currentBuildUuid);
         logger.info(`Created latest_version.txt with UUID: ${this.options.currentBuildUuid}`);
+    }
+
+    createSchemaFolder(logger) {
+        const schemaDir = path.join(this.options.outputPath, '_site');
+
+        if (fs.existsSync(schemaDir)) {
+            fs.unlinkSync(schemaDir);
+        }
+
+        const buildDir = path.join(this.options.outputPath, this.options.currentBuildUuid);
+
+        fs.symlinkSync(buildDir, schemaDir, 'dir');
     }
 
     deleteFolderRecursive(folderPath) {
