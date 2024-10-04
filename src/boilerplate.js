@@ -19,10 +19,14 @@ function prompt(question) {
     });
 }
 
+function print(text) {
+    console.log(text);
+}
+
 async function promptChoice(question, choices) {
-    console.log(question);
+    print(question);
     choices.forEach((choice, index) => {
-        console.log(`${index + 1}. ${choice}`);
+        print(`${index + 1}. ${choice}`);
     });
     const answer = await prompt('Enter the number of your choice: ');
     const index = parseInt(answer) - 1;
@@ -71,7 +75,7 @@ async function promptForComponentInfo(argv) {
         info.name = await prompt('What is the name of your component? ');
     }
 
-    if (!info.export && !info.config) {
+    if (!info.export && !info.config && !info.shared) {
         const exportType = await promptChoice('How should this component be created?', [
             'Exportable component',
             'Non-exported but with meta files',
@@ -173,9 +177,7 @@ function createTailwindConfig(modulePath) {
 }
 
 function createComponentFolder(projectDir, moduleName, componentName) {
-    console.log('projectDir', projectDir);
     const componentPath = path.join(projectDir, 'src', moduleName, 'components', componentName);
-    console.log('componentPath', componentPath);
     fs.mkdirSync(componentPath, { recursive: true });
     return componentPath;
 }
@@ -268,8 +270,8 @@ async function createModule(projectDir, options) {
     createPackageJson(modulePath, moduleName);
     createTailwindConfig(modulePath);
 
-    console.log(`Module ${moduleName} created successfully!`);
-    console.log(`You can start adding components to ${path.join(modulePath, 'components')}`);
+    print(`Module ${moduleName} created successfully!`);
+    print(`You can start adding components to ${path.join(modulePath, 'components')}`);
 }
 
 async function createComponent(projectDir, options) {
@@ -294,7 +296,7 @@ async function createComponent(projectDir, options) {
         updateModuleIndex(projectDir, moduleName, componentName);
     }
 
-    console.log(`Component ${componentName} created successfully in module ${moduleName}!`);
+    print(`Component ${componentName} created successfully in module ${moduleName}!`);
 }
 
 module.exports = {
