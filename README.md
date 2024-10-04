@@ -14,4 +14,4 @@ yarn add @uniwebcms/module-builder
 
 ## Next step
 
-- [Content and template editing with  Docufolio ](docs/docufolio.md)
+-   [Content and template editing with Docufolio ](docs/docufolio.md)
