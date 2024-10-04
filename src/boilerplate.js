@@ -9,12 +9,20 @@ function createInterface() {
     });
 }
 
-function prompt(question) {
+function prompt(question, defaultValue = null) {
+    if (!question.endsWith(' ')) {
+        question += ' ';
+    }
+
+    if (defaultValue !== null) {
+        question += `(default: ${defaultValue}) `;
+    }
+
     const rl = createInterface();
     return new Promise((resolve) => {
         rl.question(question, (answer) => {
             rl.close();
-            resolve(answer);
+            resolve(answer.trim() || defaultValue);
         });
     });
 }
@@ -23,14 +31,26 @@ function print(text) {
     console.log(text);
 }
 
-async function promptChoice(question, choices) {
-    print(question);
-    choices.forEach((choice, index) => {
-        print(`${index + 1}. ${choice}`);
-    });
-    const answer = await prompt('Enter the number of your choice: ');
+async function promptChoice(question, choices, defaultValue = null) {
+    print(question + '\n');
+
+    const options = [];
+
+    for (let key in choices) {
+        options.push(key);
+        print(`${options.length}. ${choices[key]}`);
+    }
+
+    let tip = '';
+    if (defaultValue !== null) {
+        defaultValue = options.indexOf(defaultValue) + 1;
+        tip = ` (default: ${defaultValue})`;
+    }
+
+    const answer = await prompt(`\nEnter the number of your choice${tip}: `);
+
     const index = parseInt(answer) - 1;
-    return index >= 0 && index < choices.length ? choices[index] : null;
+    return index >= 0 && index < options.length ? options[index] : defaultValue;
 }
 
 function getNewestModule(projectDir) {
@@ -52,6 +72,33 @@ function getNewestModule(projectDir) {
     return modules.length > 0 ? modules[0].name : null;
 }
 
+function validateModuleInfo(info) {
+    if (!info.name) {
+        throw new Error('Module name cannot be empty');
+    }
+    if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(info.name)) {
+        throw new Error(
+            'Module name must start with a letter and contain only letters and numbers'
+        );
+    }
+    // Add more validations as needed
+}
+
+function validateComponentInfo(info) {
+    if (!info.name) {
+        throw new Error('Component name cannot be empty');
+    }
+    if (!/^[A-Z][a-zA-Z0-9]*$/.test(info.name)) {
+        throw new Error(
+            'Component name must start with a capital letter and contain only letters and numbers'
+        );
+    }
+    if (!['section', 'block', 'element'].includes(info.type)) {
+        throw new Error('Invalid component type. Must be "section", "block", or "element"');
+    }
+    // Add more validations as needed
+}
+
 async function promptForModuleInfo(argv) {
     const info = { ...argv };
 
@@ -65,6 +112,8 @@ async function promptForModuleInfo(argv) {
             'A web component library';
     }
 
+    validateModuleInfo(info);
+
     return info;
 }
 
@@ -76,30 +125,36 @@ async function promptForComponentInfo(argv) {
     }
 
     if (!info.export && !info.config && !info.shared) {
-        const exportType = await promptChoice('How should this component be created?', [
-            'Exportable component',
-            'Non-exported but with meta files',
-            'Non-exported, plain component',
-            'Shared component (in _shared folder)',
-        ]);
-        info.exportType = ['export', 'config', 'plain', 'shared'][exportType] || 'plain';
+        info.exportType = await promptChoice(
+            'How will it be used?',
+            {
+                export: 'Export',
+                config: 'Internal with config',
+                plain: 'Internal without config',
+                shared: 'Shared across modules',
+            },
+            'export'
+        );
     }
 
     if (!info.module) {
         const defaultModule = getNewestModule(process.cwd()) || 'StarterLibrary';
-        info.module =
-            (await prompt(
-                `In which module should the component be created? (default: ${defaultModule}) `
-            )) || defaultModule;
+        info.module = await prompt(
+            `In which module should the component be created?`,
+            defaultModule
+        );
     }
 
     if (!info.type) {
-        info.type =
-            (await promptChoice('What type of component is this?', [
-                'section',
-                'block',
-                'element',
-            ])) || 'section';
+        info.type = await promptChoice(
+            'What type of component is this?',
+            {
+                section: 'Section',
+                block: 'Block',
+                element: 'Element',
+            },
+            'section'
+        );
     }
 
     if (!info.description) {
@@ -112,6 +167,8 @@ async function promptForComponentInfo(argv) {
         info.parameters =
             (await prompt('Define initial parameters (e.g., "align:string,items:number"): ')) || '';
     }
+
+    validateComponentInfo(info);
 
     return info;
 }
