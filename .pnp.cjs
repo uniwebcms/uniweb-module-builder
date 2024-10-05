@@ -34,6 +34,7 @@ const RAW_RUNTIME_STATE =
           ["compression-webpack-plugin", "virtual:f2ad80efc0f9a56150084f2af77ddfc8295f6cd79d1d81295bab22fbc94c2426d31f07d97eeafdf8d6ddbcb17af8299dc85289103b75f1e46fd227cb2decc1d8#npm:10.0.0"],\
           ["file-loader", "virtual:f2ad80efc0f9a56150084f2af77ddfc8295f6cd79d1d81295bab22fbc94c2426d31f07d97eeafdf8d6ddbcb17af8299dc85289103b75f1e46fd227cb2decc1d8#npm:6.2.0"],\
           ["fs-extra", "npm:11.2.0"],\
+          ["handlebars", "npm:4.7.8"],\
           ["image-size", "npm:1.1.1"],\
           ["js-yaml", "npm:4.1.0"],\
           ["postcss-preset-env", "virtual:f2ad80efc0f9a56150084f2af77ddfc8295f6cd79d1d81295bab22fbc94c2426d31f07d97eeafdf8d6ddbcb17af8299dc85289103b75f1e46fd227cb2decc1d8#npm:7.8.3"],\
@@ -777,6 +778,7 @@ const RAW_RUNTIME_STATE =
           ["compression-webpack-plugin", "virtual:f2ad80efc0f9a56150084f2af77ddfc8295f6cd79d1d81295bab22fbc94c2426d31f07d97eeafdf8d6ddbcb17af8299dc85289103b75f1e46fd227cb2decc1d8#npm:10.0.0"],\
           ["file-loader", "virtual:f2ad80efc0f9a56150084f2af77ddfc8295f6cd79d1d81295bab22fbc94c2426d31f07d97eeafdf8d6ddbcb17af8299dc85289103b75f1e46fd227cb2decc1d8#npm:6.2.0"],\
           ["fs-extra", "npm:11.2.0"],\
+          ["handlebars", "npm:4.7.8"],\
           ["image-size", "npm:1.1.1"],\
           ["js-yaml", "npm:4.1.0"],\
           ["postcss-preset-env", "virtual:f2ad80efc0f9a56150084f2af77ddfc8295f6cd79d1d81295bab22fbc94c2426d31f07d97eeafdf8d6ddbcb17af8299dc85289103b75f1e46fd227cb2decc1d8#npm:7.8.3"],\
@@ -1733,6 +1735,20 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["handlebars", [\
+      ["npm:4.7.8", {\
+        "packageLocation": "../../.yarn/berry/cache/handlebars-npm-4.7.8-25244c2c82-10c0.zip/node_modules/handlebars/",\
+        "packageDependencies": [\
+          ["handlebars", "npm:4.7.8"],\
+          ["minimist", "npm:1.2.8"],\
+          ["neo-async", "npm:2.6.2"],\
+          ["source-map", "npm:0.6.1"],\
+          ["uglify-js", "npm:3.19.3"],\
+          ["wordwrap", "npm:1.0.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["has-flag", [\
       ["npm:4.0.0", {\
         "packageLocation": "../../.yarn/berry/cache/has-flag-npm-4.0.0-32af9f0536-10c0.zip/node_modules/has-flag/",\
@@ -2127,6 +2143,15 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["minimatch", "npm:9.0.5"],\
           ["brace-expansion", "npm:2.0.1"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["minimist", [\
+      ["npm:1.2.8", {\
+        "packageLocation": "../../.yarn/berry/cache/minimist-npm-1.2.8-d7af7b1dce-10c0.zip/node_modules/minimist/",\
+        "packageDependencies": [\
+          ["minimist", "npm:1.2.8"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -3645,6 +3670,15 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["source-map", [\
+      ["npm:0.6.1", {\
+        "packageLocation": "../../.yarn/berry/cache/source-map-npm-0.6.1-1a3621db16-10c0.zip/node_modules/source-map/",\
+        "packageDependencies": [\
+          ["source-map", "npm:0.6.1"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["source-map-js", [\
       ["npm:1.2.0", {\
         "packageLocation": "../../.yarn/berry/cache/source-map-js-npm-1.2.0-6e63f357e5-10c0.zip/node_modules/source-map-js/",\
@@ -3842,6 +3876,15 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["uglify-js", [\
+      ["npm:3.19.3", {\
+        "packageLocation": "../../.yarn/berry/cache/uglify-js-npm-3.19.3-d73835bac2-10c0.zip/node_modules/uglify-js/",\
+        "packageDependencies": [\
+          ["uglify-js", "npm:3.19.3"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["unique-filename", [\
       ["npm:3.0.0", {\
         "packageLocation": "../../.yarn/berry/cache/unique-filename-npm-3.0.0-77d68e0a45-10c0.zip/node_modules/unique-filename/",\
@@ -3937,6 +3980,15 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["which", "npm:4.0.0"],\
           ["isexe", "npm:3.1.1"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["wordwrap", [\
+      ["npm:1.0.0", {\
+        "packageLocation": "../../.yarn/berry/cache/wordwrap-npm-1.0.0-ae57a645e8-10c0.zip/node_modules/wordwrap/",\
+        "packageDependencies": [\
+          ["wordwrap", "npm:1.0.0"]\
         ],\
         "linkType": "HARD"\
       }]\

@@ -1,6 +1,20 @@
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
+const Handlebars = require('handlebars');
+
+const TEMPLATES_DIR = path.join(__dirname, 'templates');
+
+function loadTemplate(templatePath) {
+    const template = fs.readFileSync(templatePath, 'utf8');
+    return Handlebars.compile(template);
+}
+
+function createFileFromTemplate(templatePath, targetPath, data) {
+    const template = loadTemplate(templatePath);
+    const content = template(data);
+    fs.writeFileSync(targetPath, content);
+}
 
 function createInterface() {
     return readline.createInterface({
@@ -196,141 +210,6 @@ async function promptForComponentInfo(projectDir, argv) {
     };
 }
 
-function createModuleStructure(projectDir, moduleName) {
-    const modulePath = path.join(projectDir, 'src', moduleName);
-    fs.mkdirSync(modulePath, { recursive: true });
-    fs.mkdirSync(path.join(modulePath, 'components'), { recursive: true });
-    return modulePath;
-}
-
-function createConfigYml(modulePath, moduleName, description) {
-    const configContent = `name: ${moduleName}
-description: ${description}
-version: 1.0.0
-author: Your Name
-license: MIT
-`;
-    fs.writeFileSync(path.join(modulePath, 'config.yml'), configContent);
-}
-
-function createIndexJs(modulePath) {
-    const indexContent = `// Export components here
-`;
-    fs.writeFileSync(path.join(modulePath, 'index.js'), indexContent);
-}
-
-function createIndexCss(modulePath) {
-    const cssContent = `/* Add your module-specific styles here */
-`;
-    fs.writeFileSync(path.join(modulePath, 'index.css'), cssContent);
-}
-
-function createPackageJson(modulePath, moduleName) {
-    const packageContent = `{
-  "name": "${moduleName.toLowerCase()}",
-  "version": "1.0.0",
-  "description": "A web component library",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \\"Error: no test specified\\" && exit 1"
-  },
-  "keywords": ["uniweb", "module"],
-  "author": "",
-  "license": "MIT"
-}
-`;
-    fs.writeFileSync(path.join(modulePath, 'package.json'), packageContent);
-}
-
-function createTailwindConfig(modulePath) {
-    const tailwindContent = `module.exports = {
-  content: ['./**/*.{js,jsx,ts,tsx}'],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
-}
-`;
-    fs.writeFileSync(path.join(modulePath, 'tailwind.config.js'), tailwindContent);
-}
-
-function createComponentFolder(projectDir, moduleName, componentName) {
-    const componentPath = path.join(projectDir, 'src', moduleName, 'components', componentName);
-    fs.mkdirSync(componentPath, { recursive: true });
-    return componentPath;
-}
-
-function createComponentFile(componentPath, componentName, type) {
-    const componentContent = `import React from 'react';
-
-export default function ${componentName}(props) {
-  // TODO: Implement ${componentName} ${type}
-  return (
-    <div>
-      <h2>${componentName}</h2>
-      <p>This is a new ${type} component.</p>
-    </div>
-  );
-}
-`;
-
-    fs.writeFileSync(path.join(componentPath, 'index.js'), componentContent);
-}
-
-function parseParamString(parameters = '') {
-    const map = {};
-
-    parameters.split(',').map((param) => {
-        const [name, type] = param.split(':');
-        if (name && type) {
-            const label = name.charAt(0).toUpperCase() + name.slice(1);
-            map[name] = { type, label };
-        }
-    });
-
-    return map;
-}
-
-function createConfigFiles(componentPath, componentName, description, parameters, isExported) {
-    const metaPath = path.join(componentPath, 'meta');
-    fs.mkdirSync(metaPath, { recursive: true });
-
-    const params = [];
-
-    if (parameters.length) {
-        for (let name in parameters) {
-            const param = parameters[key];
-            params.push(`  - name: ${name}\n    type: ${param.type}\n    label:${param.label}`);
-        }
-    } else {
-        params.push(`//  - name: ParamName\n//    type: ParamType}\n//    label:ParamLabel}`);
-    }
-
-    const configContent = `label: ${componentName}
-description: ${description}
-export: ${isExported}
-parameters:
-${params.join('\n')}
-`;
-
-    fs.writeFileSync(path.join(metaPath, 'config.yml'), configContent);
-
-    const notesContent = `# ${componentName}
-
-${description}
-
-## Usage
-
-TODO: Add usage instructions for this component.
-
-## Examples
-
-TODO: Add examples of how to use this component.
-`;
-
-    fs.writeFileSync(path.join(metaPath, 'notes.md'), notesContent);
-}
-
 function updateModuleIndex(projectDir, moduleName, componentName) {
     const indexPath = path.join(projectDir, 'src', moduleName, 'index.js');
     let indexContent = fs.existsSync(indexPath) ? fs.readFileSync(indexPath, 'utf8') : '';
@@ -343,51 +222,90 @@ function updateModuleIndex(projectDir, moduleName, componentName) {
     }
 }
 
-///
+function parseParameters(parameters = '') {
+    const list = [];
+
+    parameters
+        .replace(/^"|"$/g, '')
+        .split(',')
+        .map((param) => {
+            const [name, type] = param.split(':');
+            if (name && type) {
+                const label = name.charAt(0).toUpperCase() + name.slice(1);
+                list.push({ name, type, label });
+            }
+        });
+
+    return list;
+}
 
 async function createModule(projectDir, options) {
     validateModuleName(projectDir, options.name);
 
-    const { name: moduleName, description } = options;
+    const { name: moduleName, description, author } = options;
+    const modulePath = path.join(projectDir, 'src', moduleName);
+    fs.mkdirSync(modulePath, { recursive: true });
 
-    const modulePath = createModuleStructure(projectDir, moduleName);
-    createConfigYml(modulePath, moduleName, description);
-    createIndexJs(modulePath);
-    createIndexCss(modulePath);
-    createPackageJson(modulePath, moduleName);
-    createTailwindConfig(modulePath);
+    const templateFiles = [
+        'config.yml',
+        'index.js',
+        'index.css',
+        'package.json',
+        'tailwind.config.js',
+    ];
 
-    print(`Module ${moduleName} created successfully!`);
-    print(`You can start adding components to ${path.join(modulePath, 'components')}`);
+    templateFiles.forEach((file) => {
+        const templatePath = path.join(TEMPLATES_DIR, 'module', `${file}.hbs`);
+        const targetPath = path.join(modulePath, file);
+        createFileFromTemplate(templatePath, targetPath, { name: moduleName, description, author });
+    });
+
+    console.log(`Module ${moduleName} created successfully!`);
 }
 
 async function createComponent(projectDir, options) {
     validateComponentName(projectDir, options.module, options.name);
 
-    const { name: componentName, type, description, parameters } = options;
-    let { module: moduleName } = options;
+    const { name: componentName, module: moduleName, type, description, parameters } = options;
+    const componentPath = path.join(projectDir, 'src', moduleName, 'components', componentName);
+    fs.mkdirSync(componentPath, { recursive: true });
 
-    if (!moduleName) {
-        moduleName = getNewestModule(projectDir) || 'StarterLibrary';
-    }
+    // Create main component file
+    const componentTemplatePath = path.join(TEMPLATES_DIR, 'component', 'index.js.hbs');
+    const componentTargetPath = path.join(componentPath, 'index.js');
+    createFileFromTemplate(componentTemplatePath, componentTargetPath, {
+        name: componentName,
+        type,
+    });
 
     const isExported = options.export || options.exportType === 'export';
     const hasConfig = isExported || options.config || options.exportType === 'config';
 
-    const componentPath = createComponentFolder(projectDir, moduleName, componentName);
-    createComponentFile(componentPath, componentName, type);
+    console.log('Ops', hasConfig, options);
 
-    parameters = parseParamString(parameters);
-
+    // Create meta files if needed
     if (hasConfig) {
-        createConfigFiles(componentPath, componentName, description, parameters, isExported);
+        const metaPath = path.join(componentPath, 'meta');
+        fs.mkdirSync(metaPath, { recursive: true });
+
+        const metaFiles = ['config.yml', 'notes.md'];
+        metaFiles.forEach((file) => {
+            const templatePath = path.join(TEMPLATES_DIR, 'component', 'meta', `${file}.hbs`);
+            const targetPath = path.join(metaPath, file);
+            createFileFromTemplate(templatePath, targetPath, {
+                name: componentName,
+                description,
+                isExported,
+                parameters: parseParameters(parameters),
+            });
+        });
     }
 
     if (isExported) {
         updateModuleIndex(projectDir, moduleName, componentName);
     }
 
-    print(`Component ${componentName} created successfully in module ${moduleName}!`);
+    console.log(`Component ${componentName} created successfully in module ${moduleName}!`);
 }
 
 module.exports = {
