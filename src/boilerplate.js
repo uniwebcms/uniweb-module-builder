@@ -42,14 +42,16 @@ async function promptChoice(question, choices, defaultValue = null) {
     }
 
     let tip = '';
+    let index = null;
+
     if (defaultValue !== null) {
-        defaultValue = options.indexOf(defaultValue) + 1;
-        tip = ` (default: ${defaultValue})`;
+        index = options.indexOf(defaultValue) + 1;
+        tip = ` (default: ${index})`;
     }
 
-    const answer = await prompt(`\nEnter the number of your choice${tip}: `);
+    const answer = (await prompt(`\nEnter the number of your choice${tip}: `)) || index;
 
-    const index = parseInt(answer) - 1;
+    index = parseInt(answer) - 1;
     return index >= 0 && index < options.length ? options[index] : defaultValue;
 }
 
@@ -275,23 +277,40 @@ export default function ${componentName}(props) {
     fs.writeFileSync(path.join(componentPath, 'index.js'), componentContent);
 }
 
+function parseParamString(parameters = '') {
+    const map = {};
+
+    parameters.split(',').map((param) => {
+        const [name, type] = param.split(':');
+        if (name && type) {
+            const label = name.charAt(0).toUpperCase() + name.slice(1);
+            map[name] = { type, label };
+        }
+    });
+
+    return map;
+}
+
 function createConfigFiles(componentPath, componentName, description, parameters, isExported) {
     const metaPath = path.join(componentPath, 'meta');
     fs.mkdirSync(metaPath, { recursive: true });
+
+    const params = [];
+
+    if (parameters.length) {
+        for (let name in parameters) {
+            const param = parameters[key];
+            params.push(`  - name: ${name}\n    type: ${param.type}\n    label:${param.label}`);
+        }
+    } else {
+        params.push(`//  - name: ParamName\n//    type: ParamType}\n//    label:ParamLabel}`);
+    }
 
     const configContent = `label: ${componentName}
 description: ${description}
 export: ${isExported}
 parameters:
-${parameters
-    .split(',')
-    .map((param) => {
-        const [name, type] = param.split(':');
-        return `  - name: ${name}\n    type: ${type}\n    label: ${
-            name.charAt(0).toUpperCase() + name.slice(1)
-        }`;
-    })
-    .join('\n')}
+${params.join('\n')}
 `;
 
     fs.writeFileSync(path.join(metaPath, 'config.yml'), configContent);
@@ -303,16 +322,6 @@ ${description}
 ## Usage
 
 TODO: Add usage instructions for this component.
-
-## Parameters
-
-${parameters
-    .split(',')
-    .map((param) => {
-        const [name, type] = param.split(':');
-        return `- \`${name}\`: ${type}`;
-    })
-    .join('\n')}
 
 ## Examples
 
@@ -367,6 +376,8 @@ async function createComponent(projectDir, options) {
 
     const componentPath = createComponentFolder(projectDir, moduleName, componentName);
     createComponentFile(componentPath, componentName, type);
+
+    parameters = parseParamString(parameters);
 
     if (hasConfig) {
         createConfigFiles(componentPath, componentName, description, parameters, isExported);
