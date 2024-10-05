@@ -21,7 +21,7 @@ module.exports = function startConsole(projectDir) {
     const argv = yargs(hideBin(process.argv))
         .command('new:module', 'Create a new module', async (yargs) => {
             try {
-                const options = await promptForModuleInfo(yargs.argv);
+                const options = await promptForModuleInfo(projectDir, yargs.argv);
                 await createModule(projectDir, options);
                 console.log('Module created successfully!');
             } catch (error) {
@@ -30,7 +30,7 @@ module.exports = function startConsole(projectDir) {
         })
         .command('new:component', 'Create a new component', async (yargs) => {
             try {
-                const options = await promptForComponentInfo(yargs.argv);
+                const options = await promptForComponentInfo(projectDir, yargs.argv);
                 await createComponent(projectDir, options);
                 console.log('Component created successfully!');
             } catch (error) {

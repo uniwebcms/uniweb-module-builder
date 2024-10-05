@@ -72,81 +72,84 @@ function getNewestModule(projectDir) {
     return modules.length > 0 ? modules[0].name : null;
 }
 
-function validateModuleInfo(info) {
-    if (!info.name) {
+function validateModuleName(projectDir, name) {
+    if (!name) {
         throw new Error('Module name cannot be empty');
     }
-    if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(info.name)) {
+    if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(name)) {
         throw new Error(
             'Module name must start with a letter and contain only letters and numbers'
         );
     }
-    // Add more validations as needed
+
+    const modulePath = path.join(projectDir, 'src', name);
+    if (fs.existsSync(modulePath)) {
+        throw new Error(`A module named "${name}" already exists`);
+    }
 }
 
-function validateComponentInfo(info) {
-    if (!info.name) {
+function validateComponentName(projectDir, moduleName, componentName) {
+    if (!componentName) {
         throw new Error('Component name cannot be empty');
     }
-    if (!/^[A-Z][a-zA-Z0-9]*$/.test(info.name)) {
+    if (!/^[A-Z][a-zA-Z0-9]*$/.test(componentName)) {
         throw new Error(
             'Component name must start with a capital letter and contain only letters and numbers'
         );
     }
-    if (!['section', 'block', 'element'].includes(info.type)) {
-        throw new Error('Invalid component type. Must be "section", "block", or "element"');
-    }
-    // Add more validations as needed
-}
 
-async function promptForModuleInfo(argv) {
-    const info = { ...argv };
-
-    if (!info.name) {
-        info.name = await prompt('What is the name of your new module? ');
+    const modulePath = path.join(projectDir, 'src', moduleName);
+    if (!fs.existsSync(modulePath)) {
+        throw new Error(`Module "${moduleName}" does not exist`);
     }
 
-    if (!info.description) {
-        info.description =
-            (await prompt('Provide a brief description for the module: ')) ||
-            'A web component library';
-    }
-
-    validateModuleInfo(info);
-
-    return info;
-}
-
-async function promptForComponentInfo(argv) {
-    const info = { ...argv };
-
-    if (!info.name) {
-        info.name = await prompt('What is the name of your component? ');
-    }
-
-    if (!info.export && !info.config && !info.shared) {
-        info.exportType = await promptChoice(
-            'How will it be used?',
-            {
-                export: 'Export',
-                config: 'Internal with config',
-                plain: 'Internal without config',
-                shared: 'Shared across modules',
-            },
-            'export'
+    const componentPath = path.join(modulePath, 'components', componentName);
+    if (fs.existsSync(componentPath)) {
+        throw new Error(
+            `A component named "${componentName}" already exists in module "${moduleName}"`
         );
     }
+}
 
-    if (!info.module) {
-        const defaultModule = getNewestModule(process.cwd()) || 'StarterLibrary';
-        info.module = await prompt(
-            `In which module should the component be created?`,
-            defaultModule
-        );
+async function promptForModuleInfo(projectDir, argv) {
+    const info = { ...argv };
+
+    let name = argv.name;
+    while (!name) {
+        name = await prompt('What is the name of your new module? ');
+        try {
+            validateModuleName(projectDir, name);
+        } catch (error) {
+            console.error(`Error: ${error.message}`);
+            name = null; // Reset name to prompt again
+        }
     }
 
-    if (!info.type) {
-        info.type = await promptChoice(
+    const description =
+        argv.description ||
+        (await prompt('Provide a brief description for the module: ')) ||
+        'A new component library';
+
+    return { name, description };
+}
+
+async function promptForComponentInfo(projectDir, argv) {
+    let name = argv.name;
+    let moduleName = argv.module || getNewestModule(projectDir) || 'StarterLibrary';
+
+    while (!name) {
+        name = await prompt('What is the name of your component? ');
+        try {
+            validateComponentName(projectDir, moduleName, name);
+        } catch (error) {
+            console.error(`Error: ${error.message}`);
+            name = null; // Reset name to prompt again
+        }
+    }
+
+    const type =
+        argv.type ||
+        (await promptChoice(
             'What type of component is this?',
             {
                 section: 'Section',
@@ -154,26 +157,42 @@ async function promptForComponentInfo(argv) {
                 element: 'Element',
             },
             'section'
+        ));
+
+    let exportType = argv.export ? 'export' : argv.config ? 'config' : argv.shared ? 'shared' : '';
+
+    if (!exportType) {
+        exportType = await promptChoice(
+            'What type of use will it have?',
+            {
+                export: 'Export',
+                config: 'Internal (with config)',
+                plain: 'Internal (without config)',
+                shared: 'Shared across modules',
+            },
+            'export'
         );
     }
 
-    if (!info.description) {
-        info.description =
-            (await prompt('Provide a brief description for the component: ')) ||
-            'A new web component';
-    }
+    const description =
+        argv.description ||
+        (await prompt('Provide a brief description for the component: ')) ||
+        'A new web component';
 
-    if (!info.parameters) {
-        info.parameters =
-            (await prompt('Define initial parameters (e.g., "align:string,items:number"): ')) || '';
-    }
+    const parameters =
+        argv.parameters ||
+        (await prompt('Define initial parameters (e.g., "align:string,items:number"): ')) ||
+        '';
 
-    validateComponentInfo(info);
-
-    return info;
+    return {
+        name,
+        module: moduleName,
+        type,
+        exportType,
+        description,
+        parameters,
+    };
 }
-
-///
 
 function createModuleStructure(projectDir, moduleName) {
     const modulePath = path.join(projectDir, 'src', moduleName);
@@ -318,6 +337,8 @@ function updateModuleIndex(projectDir, moduleName, componentName) {
 ///
 
 async function createModule(projectDir, options) {
+    validateModuleName(projectDir, options.name);
+
     const { name: moduleName, description } = options;
 
     const modulePath = createModuleStructure(projectDir, moduleName);
@@ -332,6 +353,8 @@ async function createModule(projectDir, options) {
 }
 
 async function createComponent(projectDir, options) {
+    validateComponentName(projectDir, options.module, options.name);
+
     const { name: componentName, type, description, parameters } = options;
     let { module: moduleName } = options;
 
