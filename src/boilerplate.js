@@ -260,7 +260,7 @@ async function createModule(projectDir, options) {
         createFileFromTemplate(templatePath, targetPath, { name: moduleName, description, author });
     });
 
-    console.log(`Module ${moduleName} created successfully!`);
+    print(`Module ${moduleName} created successfully!`);
 }
 
 async function createComponent(projectDir, options) {
@@ -280,8 +280,6 @@ async function createComponent(projectDir, options) {
 
     const isExported = options.export || options.exportType === 'export';
     const hasConfig = isExported || options.config || options.exportType === 'config';
-
-    console.log('Ops', hasConfig, options);
 
     // Create meta files if needed
     if (hasConfig) {
@@ -305,7 +303,7 @@ async function createComponent(projectDir, options) {
         updateModuleIndex(projectDir, moduleName, componentName);
     }
 
-    console.log(`Component ${componentName} created successfully in module ${moduleName}!`);
+    print(`Component ${componentName} created successfully in module ${moduleName}!`);
 }
 
 module.exports = {
