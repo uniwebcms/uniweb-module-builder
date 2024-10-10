@@ -107,7 +107,7 @@ class YamlSchemaPlugin {
                         'components',
                         componentDir,
                         'meta',
-                        `${presetName}.png`
+                        preset.image || `${presetName}.png`
                     );
                     let imageInfo = {};
                     if (fs.existsSync(imagePath)) {
