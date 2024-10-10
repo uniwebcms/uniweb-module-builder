@@ -488,7 +488,7 @@ function buildWebpackConfig(env, argv, rootDir) {
     };
 }
 
-module.exports = function (argv, rootDir) {
+module.exports = function getWebpackConfig(argv, rootDir) {
     const { TARGET_MODULE } = process.env;
 
     try {
@@ -519,7 +519,7 @@ module.exports = function (argv, rootDir) {
                 else configs.push(config);
             }
 
-            return { config: configs };
+            return configs;
         }
 
         let modules = TARGET_MODULE.split(',').filter(Boolean);
@@ -545,12 +545,12 @@ module.exports = function (argv, rootDir) {
 
             process.env.TARGET_MODULE = module;
 
-            return buildWebpackConfig(process.env, argv, rootDir);
+            return buildWebpackConfig(process.env, argv, rootDir).config;
         } else if (modules.length === 1) {
             console.log('Execute single build mode...\n');
             process.env.TARGET_MODULE = modules[0].trim();
 
-            return buildWebpackConfig(process.env, argv, rootDir);
+            return buildWebpackConfig(process.env, argv, rootDir).config;
         } else {
             console.log('Execute bulk build mode...\n');
             let configs = [];
@@ -564,7 +564,7 @@ module.exports = function (argv, rootDir) {
                 else configs.push(config);
             }
 
-            return { config: configs };
+            return configs;
         }
     } catch (error) {
         throw error;
