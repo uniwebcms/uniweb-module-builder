@@ -5,6 +5,11 @@ const webpack = require('webpack');
 const imageSize = require('image-size');
 const sharp = require('sharp');
 
+function loadYaml(fullPath) {
+    // Read YAML file and convert YAML content to JS object
+    return yaml.load(fs.readFileSync(fullPath, 'utf8'));
+}
+
 class YamlSchemaPlugin {
     constructor(options = {}) {
         this.options = {
@@ -12,6 +17,8 @@ class YamlSchemaPlugin {
             output: 'schema.json',
             ...options,
         };
+
+        this.autoSchema = loadYaml(__dirname + '/auto_schema.yml');
     }
 
     apply(compiler) {
@@ -125,6 +132,8 @@ class YamlSchemaPlugin {
             );
         }
 
+        this.autoCompleteComponent(processedConfig);
+
         return processedConfig;
     }
 
@@ -178,6 +187,35 @@ class YamlSchemaPlugin {
         fs.mkdirSync(path.dirname(absoluteDestPath), { recursive: true });
         if (!fs.existsSync(absoluteDestPath)) {
             fs.symlinkSync(sourcePath, absoluteDestPath);
+        }
+    }
+
+    autoCompleteComponent(component) {
+        let { elements, items } = component;
+
+        if (Array.isArray(elements)) {
+            elements = Object.fromEntries(elements.map((key) => [key, null]));
+        }
+
+        const autoElements = this.autoSchema.elements || {};
+
+        for (const role in elements) {
+            elements[role] ??= {};
+
+            if (autoElements[role]) {
+                const element = elements[role];
+                const template = autoElements[role];
+
+                for (const key in template) {
+                    if (!element.hasOwnProperty(key)) {
+                        element[key] = template[key];
+                    }
+                }
+            }
+        }
+
+        if (items) {
+            this.autoCompleteComponent(items);
         }
     }
 }
