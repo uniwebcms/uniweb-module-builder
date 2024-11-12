@@ -58,5 +58,6 @@
     },
     "optionalDependencies": {
         "cloudflared": "^0.5.3"
-    }
+    },
+    "packageManager": "yarn@4.1.0"
 }
