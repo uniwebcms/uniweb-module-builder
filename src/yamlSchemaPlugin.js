@@ -132,6 +132,33 @@ class YamlSchemaPlugin {
             );
         }
 
+        if (config.images) {
+            processedConfig.images = await Promise.all(
+                config.images.map(async (file) => {
+                    const imagePath = path.join(srcDir, 'components', componentDir, 'meta', file);
+                    let imageInfo = {};
+                    if (fs.existsSync(imagePath)) {
+                        const { width, height } = imageSize(imagePath);
+                        const outputFormat = isProduction ? 'webp' : 'png';
+
+                        imageInfo = {
+                            height,
+                            width,
+                            type: outputFormat,
+                            path: `assets/${componentDir}/${file}`,
+                        };
+                        await this.processAndEmitImage(
+                            compilation,
+                            imagePath,
+                            `assets/${componentDir}/${file}`,
+                            isProduction
+                        );
+                    }
+                    return imageInfo;
+                })
+            );
+        }
+
         this.autoCompleteComponent(processedConfig);
 
         return processedConfig;
