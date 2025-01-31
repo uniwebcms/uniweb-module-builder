@@ -140,13 +140,15 @@ function constructWebpackConfig(props) {
         module: {
             rules: [
                 {
-                    // test: /\.js$/,
-                    test: /\.(jsx|js)$/,
-                    exclude: /(node_modules|bower_components)/,
+                    test: /\.(jsx|js)$/, // Supports both .js and .jsx files (use /\.js$/ for just .js)
+                    exclude: /(node_modules|bower_components)/, // Excludes dependencies from transpilation
                     use: {
                         loader: 'babel-loader',
                         options: {
-                            presets: ['@babel/preset-env', ['@babel/preset-react', { runtime: "automatic" }]],
+                            presets: [
+                                '@babel/preset-env', // Handles modern JavaScript features
+                                ['@babel/preset-react', { runtime: "automatic" }] // Enables automatic JSX transform
+                            ],
                         },
                     },
                 },
