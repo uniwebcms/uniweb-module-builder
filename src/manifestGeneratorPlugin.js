@@ -6,6 +6,7 @@ class ManifestGeneratorPlugin {
     constructor(options = {}) {
         this.options = {
             filename: 'manifest.json',
+            projectPath: undefined, // Path to the project being built
             ...options,
         };
     }
@@ -18,19 +19,22 @@ class ManifestGeneratorPlugin {
                     stage: webpack.Compilation.PROCESS_ASSETS_STAGE_SUMMARIZE,
                 },
                 (assets, callback) => {
-                    // Read package.json from the context directory
-                    const packageJsonPath = path.resolve(compiler.context, 'package.json');
                     let version = 'unknown';
 
-                    try {
-                        const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-                        version = packageJson.version;
-                    } catch (error) {
-                        compilation.warnings.push(
-                            new Error(
-                                'ManifestGeneratorPlugin: Could not read version from package.json'
-                            )
-                        );
+                    if (this.options.projectPath) {
+                        const packageJsonPath = path.join(this.options.projectPath, 'package.json');
+                        try {
+                            const packageJson = JSON.parse(
+                                fs.readFileSync(packageJsonPath, 'utf8')
+                            );
+                            version = packageJson.version;
+                        } catch (error) {
+                            compilation.warnings.push(
+                                new Error(
+                                    `ManifestGeneratorPlugin: Error reading ${packageJsonPath}: ${error.message}`
+                                )
+                            );
+                        }
                     }
 
                     const manifest = {
