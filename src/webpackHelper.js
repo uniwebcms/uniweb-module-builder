@@ -76,7 +76,7 @@ function getWebpackPlugins(props) {
         }),
         // Prod-mode needs manifest / Dev-mode needs compression
         mode !== 'development'
-            ? new ManifestGeneratorPlugin()
+            ? new ManifestGeneratorPlugin({ srcDir: '../src/' + moduleName })
             : new CompressionPlugin({
                   filename: '[path][base].gzip',
                   algorithm: 'gzip',
@@ -147,7 +147,7 @@ function constructWebpackConfig(props) {
                         options: {
                             presets: [
                                 '@babel/preset-env', // Handles modern JavaScript features
-                                ['@babel/preset-react', { runtime: "automatic" }] // Enables automatic JSX transform
+                                ['@babel/preset-react', { runtime: 'automatic' }], // Enables automatic JSX transform
                             ],
                         },
                     },

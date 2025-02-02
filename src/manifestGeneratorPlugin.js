@@ -6,7 +6,7 @@ class ManifestGeneratorPlugin {
     constructor(options = {}) {
         this.options = {
             filename: 'manifest.json',
-            projectPath: undefined, // Path to the project being built
+            srcDir: undefined, // Path to the project being built
             ...options,
         };
     }
@@ -21,8 +21,9 @@ class ManifestGeneratorPlugin {
                 (assets, callback) => {
                     let version = 'unknown';
 
-                    if (this.options.projectPath) {
-                        const packageJsonPath = path.join(this.options.projectPath, 'package.json');
+                    if (this.options.srcDir) {
+                        const projectPath = path.resolve(compiler.context, this.options.srcDir);
+                        const packageJsonPath = path.join(projectPath, 'package.json');
                         try {
                             const packageJson = JSON.parse(
                                 fs.readFileSync(packageJsonPath, 'utf8')
