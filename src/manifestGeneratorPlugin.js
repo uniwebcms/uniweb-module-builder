@@ -1,5 +1,6 @@
 const path = require('path');
 const webpack = require('webpack');
+const fs = require('fs');
 
 class ManifestGeneratorPlugin {
     constructor(options = {}) {
@@ -17,7 +18,23 @@ class ManifestGeneratorPlugin {
                     stage: webpack.Compilation.PROCESS_ASSETS_STAGE_SUMMARIZE,
                 },
                 (assets, callback) => {
+                    // Read package.json from the context directory
+                    const packageJsonPath = path.resolve(compiler.context, 'package.json');
+                    let version = 'unknown';
+
+                    try {
+                        const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+                        version = packageJson.version;
+                    } catch (error) {
+                        compilation.warnings.push(
+                            new Error(
+                                'ManifestGeneratorPlugin: Could not read version from package.json'
+                            )
+                        );
+                    }
+
                     const manifest = {
+                        version,
                         generatedAt: new Date().toISOString(),
                         files: [],
                     };
