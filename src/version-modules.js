@@ -4,13 +4,13 @@ const path = require('path');
 const { execSync } = require('child_process');
 const readline = require('readline');
 
-const MODULES_DIR = path.join(__dirname, '../src');
+// const MODULES_DIR = path.join(__dirname, '../src');
 
-function getModuleDirs() {
+function getModuleDirs(srcDir) {
     return fs
-        .readdirSync(MODULES_DIR)
-        .filter((file) => fs.statSync(path.join(MODULES_DIR, file)).isDirectory())
-        .filter((dir) => fs.existsSync(path.join(MODULES_DIR, dir, 'package.json')));
+        .readdirSync(srcDir)
+        .filter((file) => fs.statSync(path.join(srcDir, file)).isDirectory())
+        .filter((dir) => fs.existsSync(path.join(srcDir, dir, 'package.json')));
 }
 
 function updateVersion(version, type) {
@@ -71,8 +71,8 @@ async function selectModule(modules) {
     return modules[selection];
 }
 
-function updateModuleVersion(moduleDir, versionType) {
-    const packageJsonPath = path.join(MODULES_DIR, moduleDir, 'package.json');
+function updateModuleVersion(srcDir, moduleDir, versionType) {
+    const packageJsonPath = path.join(srcDir, moduleDir, 'package.json');
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
     const oldVersion = packageJson.version;
     const newVersion = updateVersion(oldVersion, versionType);
@@ -102,7 +102,7 @@ function createCommit(update) {
     execSync(`git tag -a ${tagName} -m "Version ${newVersion} of ${name}"`);
 }
 
-async function main() {
+module.exports = async function main(srcDir) {
     const versionType = process.argv[2];
     const shouldPush = process.argv.includes('--push');
 
@@ -120,9 +120,9 @@ async function main() {
             process.exit(1);
         }
 
-        const moduleDirs = getModuleDirs();
+        const moduleDirs = getModuleDirs(srcDir);
         const selectedModule = await selectModule(moduleDirs);
-        const update = updateModuleVersion(selectedModule, versionType);
+        const update = updateModuleVersion(srcDir, selectedModule, versionType);
 
         createCommit(update);
 
@@ -138,19 +138,4 @@ async function main() {
         console.error('Error:', error.message);
         process.exit(1);
     }
-}
-
-main();
-
-/*
-{
-  "scripts": {
-    "version:patch": "node scripts/version-modules.js patch",
-    "version:minor": "node scripts/version-modules.js minor",
-    "version:major": "node scripts/version-modules.js major",
-    "push:patch": "node scripts/version-modules.js patch --push",
-    "push:minor": "node scripts/version-modules.js minor --push",
-    "push:major": "node scripts/version-modules.js major --push"
-  }
-}
-*/
+};
